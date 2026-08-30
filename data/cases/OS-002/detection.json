@@ -1,0 +1,26 @@
+{
+  "case_id": "OS-002",
+  "detected_at": "2026-08-29T11:00:00Z",
+  "spill": {
+    "centroid": {"lat": 15.0200, "lon": 66.9300},
+    "polygon": {
+      "type": "Polygon",
+      "coordinates": [[
+        [66.9200, 15.0100],
+        [66.9400, 15.0100],
+        [66.9400, 15.0300],
+        [66.9200, 15.0300],
+        [66.9200, 15.0100]
+      ]]
+    },
+    "area_km2": 3.1,
+    "perimeter_km": 8.0,
+    "elongation": 1.6,
+    "coastline_distance_km": 74.0
+  },
+  "detection_confidence": {
+    "value": 0.91,
+    "type": "indicative_uncalibrated",
+    "label": "Indicative detection confidence"
+  }
+}

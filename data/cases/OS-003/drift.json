@@ -1,0 +1,31 @@
+{
+  "case_id": "OS-003",
+  "hindcast": {
+    "origin": {"lat": 14.6000, "lon": 68.0640},
+    "origin_time_window": {
+      "start": "2026-08-29T07:00:00Z",
+      "end": "2026-08-29T11:00:00Z"
+    },
+    "path": {
+      "type": "LineString",
+      "coordinates": [
+        [68.0640, 14.6000],
+        [68.0720, 14.6100],
+        [68.0800, 14.6200]
+      ]
+    }
+  },
+  "forecast": {
+    "path": {
+      "type": "LineString",
+      "coordinates": [
+        [68.0800, 14.6200],
+        [68.0950, 14.6350],
+        [68.1100, 14.6500]
+      ]
+    },
+    "time_to_coastline_hours": 27.0,
+    "time_to_sensitive_zone_hours": 40.0
+  },
+  "uncertainty": null
+}

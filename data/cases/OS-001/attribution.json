@@ -1,0 +1,52 @@
+{
+  "case_id": "OS-001",
+  "executed": true,
+  "data_disclosure": {
+    "ais_type": "synthetic",
+    "description": "Synthetic AIS tracks generated for controlled validation."
+  },
+  "candidates": [
+    {
+      "vessel_id": "MMSI-100001",
+      "vessel_name": "Vessel Alpha",
+      "score": 88.0,
+      "confidence_tier": "High",
+      "features": {
+        "proximity": 92.0,
+        "trajectory_alignment": 84.0
+      },
+      "evidence": [
+        "Vessel track passed within 2 km of the estimated origin during the origin time window.",
+        "Trajectory heading aligned with the backward drift path within 8 degrees."
+      ]
+    },
+    {
+      "vessel_id": "MMSI-100002",
+      "vessel_name": "Vessel Bravo",
+      "score": 61.0,
+      "confidence_tier": "Medium",
+      "features": {
+        "proximity": 58.0,
+        "trajectory_alignment": 64.0
+      },
+      "evidence": [
+        "Vessel track passed within 9 km of the estimated origin during the origin time window.",
+        "Trajectory heading loosely aligned with the backward drift path."
+      ]
+    },
+    {
+      "vessel_id": "MMSI-100003",
+      "vessel_name": "Vessel Charlie",
+      "score": 34.0,
+      "confidence_tier": "Low",
+      "features": {
+        "proximity": 30.0,
+        "trajectory_alignment": 38.0
+      },
+      "evidence": [
+        "Vessel track was in the general region but far from the estimated origin.",
+        "Trajectory heading only weakly aligned with the backward drift path."
+      ]
+    }
+  ]
+}

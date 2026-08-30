@@ -1,0 +1,16 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "P-17",
+        "name": "Platform P-17"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [66.9100, 15.0250]
+      }
+    }
+  ]
+}
