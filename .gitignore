@@ -22,3 +22,33 @@ Thumbs.db
 # Editors
 .vscode/
 .idea/
+
+# --- Graphify "Hive Mind" -----------------------------------------------
+# graphify-out/ is INTENTIONALLY NOT ignored wholesale: graph.json,
+# GRAPH_REPORT.md, graph.html, and obsidian/ are the shared team graph and
+# MUST be committed so every teammate gets the same knowledge graph via git.
+#
+# Only the machine-local/regenerable build state is ignored below:
+#   - .graphify_*.json / .graphify_python / .graphify_root: internal pipeline
+#     intermediates (AST/semantic/chunk dumps) and an ABSOLUTE, per-machine
+#     Python interpreter path — committing .graphify_python would point
+#     teammates at your local venv path.
+#   - cache/: regenerable AST/semantic extraction cache (rebuilt automatically).
+#   - cost.json: local LLM token/cost usage log, not project knowledge.
+#   - manifest.json: per-file mtime/hash tracking used only for incremental
+#     `--update` detection; timestamps are absolute and machine-specific, so
+#     committing it just churns on every clone/commit with no shared value.
+# See README.md "Updating the Hive Mind" for how graph.json/GRAPH_REPORT.md/
+# obsidian/ get regenerated and re-committed.
+graphify-out/.graphify_*
+graphify-out/cache/
+graphify-out/cost.json
+graphify-out/manifest.json
+
+# Claude Code — personal/local permission overrides, not shared project config
+# (.claude/settings.json and .claude/skills/ ARE committed — see README.md)
+.claude/settings.local.json
+
+# MCP server registration files can embed an absolute, machine-specific
+# interpreter path (see README.md "Registering the Graphify MCP server")
+.mcp.json
