@@ -2,8 +2,7 @@
 
 Thresholds and stage-provider modes must never be hardcoded into business logic —
 everything here is overridable via environment variables / `.env`. Threshold defaults
-below are placeholders pending explicit team sign-off (see docs/decisions.md and the
-architecture audit plan §11).
+below are placeholders pending explicit team sign-off (see docs/decisions.md #6-#8).
 """
 
 from __future__ import annotations
@@ -21,7 +20,7 @@ class Settings(BaseSettings):
     api_timeout_seconds: int = 30
     cors_allowed_origin: str = "http://localhost:5173"
 
-    # Stage B thresholds — PLACEHOLDER, not yet team-approved (see plan §11.1)
+    # Stage B thresholds — PLACEHOLDER, not yet team-approved (see docs/decisions.md #6-#8)
     triage_platform_radius_km: float = 5.0
     triage_pipeline_radius_km: float = 2.0
 

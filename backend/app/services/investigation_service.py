@@ -3,14 +3,14 @@
 load case -> Stage A -> Stage C -> Stage B -> conditional Stage D -> Stage E -> aggregate.
 
 Approved behavior for `insufficient-evidence`: Stage D auto-runs, clearly labelled
-low-confidence via `AttributionResult.low_confidence` (see architecture audit plan
-§0/§9 -- resolved with the user before implementation).
+low-confidence via `AttributionResult.low_confidence` (see docs/decisions.md #2-#3).
 """
 
 from __future__ import annotations
 
 from app.core.config import Settings, settings
 from app.core.paths import INFRASTRUCTURE_DIR
+from app.data.demo_cases import vessel_evidence_available_for
 from app.data.infrastructure import load_infrastructure
 from app.data.repositories import investigation_repository
 from app.integrations.base import AttributionProvider, DetectionProvider, DriftProvider
@@ -43,7 +43,7 @@ def run_investigation(
         case_id=case_id,
         origin=drift.hindcast.origin,
         infrastructure=infrastructure,
-        vessel_evidence_available=True,  # MVP: always true, see plan §9
+        vessel_evidence_available=vessel_evidence_available_for(case_id),
         config=config,
     )
 

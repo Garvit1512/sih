@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.paths import INFRASTRUCTURE_DIR
+from app.data.demo_cases import vessel_evidence_available_for
 from app.data.infrastructure import load_infrastructure
 from app.integrations.stage_c import get_drift_provider
 from app.integrations.stage_d import get_attribution_provider
@@ -28,7 +29,7 @@ def attribute(request: AttributeRequest) -> AttributionResult:
         case_id=request.case_id,
         origin=drift.hindcast.origin,
         infrastructure=infrastructure,
-        vessel_evidence_available=True,
+        vessel_evidence_available=vessel_evidence_available_for(request.case_id),
         config=settings,
     )
 

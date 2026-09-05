@@ -1,7 +1,7 @@
 """Central filesystem paths for the curated case/infrastructure datasets.
 
 `data/` lives at the repo root (shared between backend loading and documentation), not
-nested under `backend/` -- see the architecture audit plan §2.
+nested under `backend/` -- see docs/decisions.md #5.
 """
 
 from __future__ import annotations

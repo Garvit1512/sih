@@ -43,3 +43,14 @@ def test_investigation_is_retrievable_after_run():
     fetched = get_investigation("OS-001")
     assert fetched is not None
     assert fetched.case_id == "OS-001"
+
+
+def test_insufficient_evidence_case_runs_stage_d_with_low_confidence():
+    investigation = run_investigation("OS-004")
+    assert investigation.triage.hypothesis == TriageHypothesis.INSUFFICIENT_EVIDENCE
+    assert investigation.triage.routing.run_vessel_attribution is True
+    assert investigation.triage.routing.low_confidence is True
+    assert investigation.attribution.executed is True
+    assert investigation.attribution.low_confidence is True
+    assert investigation.report is not None
+    assert investigation.report.disclaimer == DISCLAIMER

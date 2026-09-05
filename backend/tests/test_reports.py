@@ -21,15 +21,21 @@ def test_platform_case_report_has_no_ais_disclosure_since_attribution_did_not_ru
     assert investigation.report.synthetic_ais_disclosure is None
 
 
+def test_insufficient_evidence_case_report_includes_synthetic_ais_disclosure():
+    investigation = run_investigation("OS-004")
+    assert investigation.report.synthetic_ais_disclosure == SYNTHETIC_AIS_DISCLOSURE
+
+
 def test_report_always_includes_all_known_limitations():
     investigation = run_investigation("OS-001")
     assert investigation.report.limitations == KNOWN_LIMITATIONS
 
 
 def test_report_never_uses_accusatory_language_in_vessel_evidence():
-    investigation = run_investigation("OS-001")
     forbidden_phrases = ["caused the spill", "is guilty", "confirmed responsible"]
-    for candidate in investigation.attribution.candidates:
-        for line in candidate.evidence:
-            for phrase in forbidden_phrases:
-                assert phrase not in line.lower()
+    for case_id in ("OS-001", "OS-004"):
+        investigation = run_investigation(case_id)
+        for candidate in investigation.attribution.candidates:
+            for line in candidate.evidence:
+                for phrase in forbidden_phrases:
+                    assert phrase not in line.lower()

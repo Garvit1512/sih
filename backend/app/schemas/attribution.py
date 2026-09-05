@@ -5,7 +5,7 @@ member; this schema is the boundary they must adapt their real output to.
 
 `low_confidence` is an additive field beyond the PRD §13 example, needed to implement
 the approved behavior for `insufficient-evidence` routing (auto-run Stage D, but clearly
-labelled low-confidence). See docs/decisions.md.
+labelled low-confidence). See docs/decisions.md #2-#3.
 """
 
 from __future__ import annotations

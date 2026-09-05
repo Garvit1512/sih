@@ -1,0 +1,38 @@
+{
+  "case_id": "OS-004",
+  "executed": true,
+  "data_disclosure": {
+    "ais_type": "synthetic",
+    "description": "Synthetic AIS tracks generated for controlled validation."
+  },
+  "candidates": [
+    {
+      "vessel_id": "MMSI-100004",
+      "vessel_name": "Vessel Delta",
+      "score": 42.0,
+      "confidence_tier": "Low",
+      "features": {
+        "proximity": 40.0,
+        "trajectory_alignment": 44.0
+      },
+      "evidence": [
+        "Vessel track passed within 18 km of the estimated origin during the origin time window.",
+        "Trajectory heading only loosely consistent with the backward drift path."
+      ]
+    },
+    {
+      "vessel_id": "MMSI-100005",
+      "vessel_name": "Vessel Echo",
+      "score": 29.0,
+      "confidence_tier": "Low",
+      "features": {
+        "proximity": 26.0,
+        "trajectory_alignment": 32.0
+      },
+      "evidence": [
+        "Vessel track was in the general region but well outside the typical proximity range of the estimated origin.",
+        "Trajectory heading weakly aligned with the backward drift path."
+      ]
+    }
+  ]
+}

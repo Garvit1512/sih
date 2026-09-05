@@ -36,20 +36,21 @@ def test_time_window_accepts_utc():
     assert window.start.utcoffset().total_seconds() == 0
 
 
-@pytest.mark.parametrize("case_id", ["OS-001", "OS-002", "OS-003"])
+@pytest.mark.parametrize("case_id", ["OS-001", "OS-002", "OS-003", "OS-004"])
 def test_mock_detection_fixture_validates(case_id: str):
     with (CASES_DIR / case_id / "detection.json").open(encoding="utf-8") as f:
         DetectionResult.model_validate(json.load(f))
 
 
-@pytest.mark.parametrize("case_id", ["OS-001", "OS-002", "OS-003"])
+@pytest.mark.parametrize("case_id", ["OS-001", "OS-002", "OS-003", "OS-004"])
 def test_mock_drift_fixture_validates(case_id: str):
     with (CASES_DIR / case_id / "drift.json").open(encoding="utf-8") as f:
         DriftResult.model_validate(json.load(f))
 
 
-def test_mock_attribution_fixture_validates():
-    with (CASES_DIR / "OS-001" / "attribution.json").open(encoding="utf-8") as f:
+@pytest.mark.parametrize("case_id", ["OS-001", "OS-004"])
+def test_mock_attribution_fixture_validates(case_id: str):
+    with (CASES_DIR / case_id / "attribution.json").open(encoding="utf-8") as f:
         AttributionResult.model_validate(json.load(f))
 
 

@@ -2,7 +2,7 @@
 
 Known MVP tradeoff: state is cleared on backend restart. Low-risk because mock
 providers are fully deterministic -- re-running POST /api/investigation/run after a
-restart reproduces byte-identical results (see architecture audit plan §9).
+restart reproduces byte-identical results (see docs/decisions.md #4).
 """
 
 from __future__ import annotations
