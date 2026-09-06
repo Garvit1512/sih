@@ -5,7 +5,8 @@
 `platforms.geojson` and `pipelines.geojson` are a **small, hand-verified static
 dataset**, not sourced from Global Energy Monitor or OpenStreetMap yet (PRD §16).
 Every coordinate here is **synthetic/placeholder**, constructed specifically to make the
-three demo cases below produce their intended Stage B hypothesis — they do not
+four demo cases below produce their intended Stage B hypothesis — `OS-002` and `OS-003`
+by proximity, `OS-001` and `OS-004` by being far from every feature. They do not
 represent real offshore infrastructure. This must be replaced with (or supplemented by)
 verified public data, or clearly-labelled hand-verified real infrastructure, before any
 claim of realism is made in the demo.

@@ -1,6 +1,6 @@
 # Cross-Stage Interface Contracts
 
-**Status:** frozen. **Source of truth:** `backend/app/schemas/`. **Enforcement:** `backend/tests/test_contracts.py` (12 tests).
+**Status:** frozen. **Source of truth:** `backend/app/schemas/`. **Enforcement:** `backend/tests/test_contracts.py` (15 tests).
 
 This document describes the objects that cross a boundary between two stages of the pipeline. It is written for the people who own Stages A, C and D — whose real implementations must adapt their output to these shapes — and for the frontend, which consumes them.
 
@@ -305,7 +305,7 @@ Current engine behaviour:
 | `likely-pipeline` | `false` | `false` | `High` |
 | `possible-natural-seep` | *(never emitted)* | — | — |
 
-Verified against the three demo cases: `OS-001` → `likely-vessel` / `Medium` / attribution runs with 3 candidates; `OS-002` → `likely-platform` / `High` / attribution returns `executed: false`, `candidates: []`; `OS-003` → `likely-pipeline` / `High` / same. The non-vessel cases are the ones that demonstrate the `executed: false` distinction in §5.
+Verified against the four demo cases: `OS-001` → `likely-vessel` / `Medium` / attribution runs with 3 candidates; `OS-002` → `likely-platform` / `High` / attribution returns `executed: false`, `candidates: []`; `OS-003` → `likely-pipeline` / `High` / same; `OS-004` → `insufficient-evidence` / `Low` / attribution runs with 2 candidates and `low_confidence: true`. The non-vessel cases are the ones that demonstrate the `executed: false` distinction in §5; `OS-004` is the one that demonstrates the `low_confidence` distinction, which is a different thing — attribution *ran*, and the result is qualified rather than absent.
 
 Decision order in `evaluate_triage()`: platform wins if within `triage_platform_radius_km` **and** (no pipeline nearby, or the platform is at least as close); otherwise pipeline if within `triage_pipeline_radius_km`; otherwise vessel if vessel evidence is available; otherwise insufficient-evidence.
 
@@ -473,7 +473,7 @@ Never a raw stack trace. `request_id` is a fresh UUID per response.
 
 ## 9. What is enforced automatically
 
-`backend/tests/test_contracts.py`, 12 tests, all currently passing:
+`backend/tests/test_contracts.py`, 15 tests, all currently passing:
 
 | Test | Guards |
 | --- | --- |
@@ -481,9 +481,9 @@ Never a raw stack trace. `request_id` is a fresh UUID per response.
 | `test_time_window_rejects_naive_datetime` | §1.2 |
 | `test_time_window_rejects_non_utc_offset` | §1.2 |
 | `test_time_window_accepts_utc` | §1.2 |
-| `test_mock_detection_fixture_validates` × 3 | §2 against OS-001/002/003 |
-| `test_mock_drift_fixture_validates` × 3 | §3 against OS-001/002/003 |
-| `test_mock_attribution_fixture_validates` | §5 against OS-001 |
+| `test_mock_detection_fixture_validates` × 4 | §2 against OS-001/002/003/004 |
+| `test_mock_drift_fixture_validates` × 4 | §3 against OS-001/002/003/004 |
+| `test_mock_attribution_fixture_validates` × 2 | §5 against OS-001/004 |
 | `test_invalid_detection_payload_fails_validation` | rejection actually rejects |
 
 The checked-in fixtures under `data/cases/` are validated against the live schemas on every run, so a schema change that breaks the contract fails the suite rather than surfacing later.
@@ -506,7 +506,7 @@ Listed so an unspecified field reads as a known gap. Each needs a decision befor
 8. **`provenance` is `dict[str, str]`, untyped.** Its keys are unspecified in both `InvestigationReport` and `InvestigationCase`.
 9. **`VesselFeatures` carries only the two MVP features.** Dark-gap, behavioural-anomaly and track-integrity scores have no fields yet.
 10. **`possible-natural-seep` is unreachable** — in the enum, never emitted. Intentional, but worth stating rather than leaving a consumer to wonder.
-11. **`docs/decisions.md` does not exist.** It is referenced by `app/schemas/attribution.py` and `app/core/config.py` as the record for the `low_confidence` addition and the placeholder thresholds. Second dangling doc reference in this repo — this document was the first.
+11. ~~**`docs/decisions.md` does not exist.**~~ **Resolved.** The file now exists and records the `low_confidence` addition (#2-#3) and the placeholder thresholds (#6-#8); `app/schemas/attribution.py` and `app/core/config.py` cite it by item number. Both dangling doc references in this repo — this document was the first — are closed.
 
 ---
 

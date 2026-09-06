@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "backend",
-      "runtimeExecutable": "E:/sih/backend/.venv/Scripts/python.exe",
-      "runtimeArgs": ["E:/sih/backend/run_dev.py"],
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["backend/run_dev.py"],
       "port": 8000,
       "autoPort": true
     }

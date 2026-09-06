@@ -122,14 +122,20 @@ they do nothing today.
 
 ## Demo cases
 
-Three curated, deterministic cases demonstrate that Stage B actually gates vessel
+Four curated, deterministic cases demonstrate that Stage B actually gates vessel
 attribution rather than always blaming a vessel:
 
-| Case | Hypothesis | Stage D runs? |
-|---|---|---|
-| OS-001 | likely-vessel | yes |
-| OS-002 | likely-platform | no |
-| OS-003 | likely-pipeline | no |
+| Case | Hypothesis | Stage D runs? | Notes |
+|---|---|---|---|
+| OS-001 | likely-vessel | yes | ranked lead list produced |
+| OS-002 | likely-platform | no | stationary source identified |
+| OS-003 | likely-pipeline | no | stationary source identified |
+| OS-004 | insufficient-evidence | yes | leads produced, flagged low-confidence |
+
+`OS-004` exercises the fourth routing path: no stationary source is close enough and no
+vessel evidence is available, so Stage D still runs but its result carries
+`low_confidence: true` — a field consumers branch on, not just prose. See
+`docs/decisions.md` #2-#3 for why this routes to Stage D rather than skipping it.
 
 See `data/README.md` for dataset provenance.
 
