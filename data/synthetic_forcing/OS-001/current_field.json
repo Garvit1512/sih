@@ -1,0 +1,6 @@
+{
+  "case_id": "OS-001",
+  "base_speed_mps": 0.2018,
+  "base_bearing_deg": 167.01,
+  "disclosure": "Backward/forward drift computed via a deterministic Lagrangian particle-advection algorithm driven by an idealized, seeded synthetic current field -- not real oceanographic data (NOAA OSCAR/HYCOM/Copernicus). See docs/stage-c-d-integration-plan.md."
+}

@@ -10,6 +10,7 @@ import json
 
 from app.core.errors import CaseNotFoundError
 from app.core.paths import CASES_DIR
+from app.integrations.validation import validate_stage_result
 from app.schemas.detection import DetectionResult
 
 
@@ -19,4 +20,5 @@ class MockDetectionProvider:
         if not path.exists():
             raise CaseNotFoundError(f"No mock detection data for case '{case_id}'.")
         with path.open(encoding="utf-8") as f:
-            return DetectionResult.model_validate(json.load(f))
+            raw = json.load(f)
+        return validate_stage_result(DetectionResult, raw, stage="A", case_id=case_id)

@@ -19,8 +19,20 @@ class DetectionProvider(Protocol):
 
 
 class DriftProvider(Protocol):
-    def get_result(self, case_id: str) -> DriftResult: ...
+    def get_result(self, case_id: str, detection: DetectionResult | None = None) -> DriftResult:
+        """`detection` is optional for signature compatibility with `MockDriftProvider`,
+        which ignores it (its fixture is self-contained). `RealDriftProvider` requires
+        it -- a real engine seeds particles from the detected spill's centroid and
+        timestamp. The orchestrator always supplies it (see
+        docs/stage-c-d-integration-plan.md)."""
+        ...
 
 
 class AttributionProvider(Protocol):
-    def get_result(self, case_id: str) -> AttributionResult: ...
+    def get_result(self, case_id: str, drift: DriftResult | None = None) -> AttributionResult:
+        """`drift` is optional for signature compatibility with
+        `MockAttributionProvider`, which ignores it (its fixture is self-contained).
+        `RealAttributionProvider` requires it -- real candidate filtering/scoring needs
+        the hindcast origin, time window, and path. The orchestrator always supplies it
+        (see docs/stage-c-d-integration-plan.md)."""
+        ...

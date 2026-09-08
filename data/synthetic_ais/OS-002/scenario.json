@@ -1,0 +1,215 @@
+{
+  "case_id": "OS-002",
+  "generated_from_drift_origin": {
+    "lat": 14.975192801548474,
+    "lon": 66.92856556201323
+  },
+  "disclosure": "AIS tracks shown in this demonstration are synthetically generated for controlled validation and do not represent live vessel traffic.",
+  "tracks": [
+    {
+      "vessel_id": "MMSI-991148",
+      "vessel_name": "Vessel India",
+      "reports": [
+        {
+          "timestamp": "2026-08-29T03:00:00+00:00",
+          "lat": 14.573635776925261,
+          "lon": 66.97323684904845,
+          "speed_knots": 11.9,
+          "course_deg": 356.6
+        },
+        {
+          "timestamp": "2026-08-29T04:00:00+00:00",
+          "lat": 14.77329203191419,
+          "lon": 66.96098986183415,
+          "speed_knots": 11.9,
+          "course_deg": 356.6
+        },
+        {
+          "timestamp": "2026-08-29T05:00:00+00:00",
+          "lat": 14.97294418963243,
+          "lon": 66.94872048654449,
+          "speed_knots": 11.9,
+          "course_deg": 356.6
+        },
+        {
+          "timestamp": "2026-08-29T06:00:00+00:00",
+          "lat": 15.172592197489259,
+          "lon": 66.93642836489478,
+          "speed_knots": 11.9,
+          "course_deg": 356.6
+        },
+        {
+          "timestamp": "2026-08-29T07:00:00+00:00",
+          "lat": 15.372236002998259,
+          "lon": 66.92411313618214,
+          "speed_knots": 11.9,
+          "course_deg": 356.6
+        }
+      ]
+    },
+    {
+      "vessel_id": "MMSI-120511",
+      "vessel_name": "Background Vessel 1",
+      "reports": [
+        {
+          "timestamp": "2026-08-29T03:00:00+00:00",
+          "lat": 14.750917296058025,
+          "lon": 67.65745693883451,
+          "speed_knots": 17.0,
+          "course_deg": 251.9
+        },
+        {
+          "timestamp": "2026-08-29T04:00:00+00:00",
+          "lat": 14.66300748384449,
+          "lon": 67.37933673615338,
+          "speed_knots": 17.0,
+          "course_deg": 251.9
+        },
+        {
+          "timestamp": "2026-08-29T05:00:00+00:00",
+          "lat": 14.574764579371948,
+          "lon": 67.10143877376127,
+          "speed_knots": 17.0,
+          "course_deg": 251.9
+        },
+        {
+          "timestamp": "2026-08-29T06:00:00+00:00",
+          "lat": 14.486190931414367,
+          "lon": 66.82376230876032,
+          "speed_knots": 17.0,
+          "course_deg": 251.9
+        },
+        {
+          "timestamp": "2026-08-29T07:00:00+00:00",
+          "lat": 14.397288890807971,
+          "lon": 66.5463065792675,
+          "speed_knots": 17.0,
+          "course_deg": 251.9
+        }
+      ]
+    },
+    {
+      "vessel_id": "MMSI-165965",
+      "vessel_name": "Background Vessel 2",
+      "reports": [
+        {
+          "timestamp": "2026-08-29T03:00:00+00:00",
+          "lat": 14.216838567842286,
+          "lon": 66.46126699181696,
+          "speed_knots": 7.6,
+          "course_deg": 109.2
+        },
+        {
+          "timestamp": "2026-08-29T04:00:00+00:00",
+          "lat": 14.175077340703902,
+          "lon": 66.58484953767886,
+          "speed_knots": 7.6,
+          "course_deg": 109.2
+        },
+        {
+          "timestamp": "2026-08-29T05:00:00+00:00",
+          "lat": 14.133252301831277,
+          "lon": 66.70838684180836,
+          "speed_knots": 7.6,
+          "course_deg": 109.2
+        },
+        {
+          "timestamp": "2026-08-29T06:00:00+00:00",
+          "lat": 14.091363669807453,
+          "lon": 66.83187899115845,
+          "speed_knots": 7.6,
+          "course_deg": 109.2
+        },
+        {
+          "timestamp": "2026-08-29T07:00:00+00:00",
+          "lat": 14.04941166325943,
+          "lon": 66.95532607341758,
+          "speed_knots": 7.6,
+          "course_deg": 109.2
+        }
+      ]
+    },
+    {
+      "vessel_id": "MMSI-181333",
+      "vessel_name": "Background Vessel 3",
+      "reports": [
+        {
+          "timestamp": "2026-08-29T03:00:00+00:00",
+          "lat": 15.693937226939067,
+          "lon": 67.4800979663594,
+          "speed_knots": 9.3,
+          "course_deg": 295.2
+        },
+        {
+          "timestamp": "2026-08-29T04:00:00+00:00",
+          "lat": 15.760326802010338,
+          "lon": 67.33458091329207,
+          "speed_knots": 9.3,
+          "course_deg": 295.2
+        },
+        {
+          "timestamp": "2026-08-29T05:00:00+00:00",
+          "lat": 15.826618698876477,
+          "lon": 67.18896931636857,
+          "speed_knots": 9.3,
+          "course_deg": 295.2
+        },
+        {
+          "timestamp": "2026-08-29T06:00:00+00:00",
+          "lat": 15.892812423734616,
+          "lon": 67.04326283507625,
+          "speed_knots": 9.3,
+          "course_deg": 295.2
+        },
+        {
+          "timestamp": "2026-08-29T07:00:00+00:00",
+          "lat": 15.958907482376196,
+          "lon": 66.89746113060843,
+          "speed_knots": 9.3,
+          "course_deg": 295.2
+        }
+      ]
+    },
+    {
+      "vessel_id": "MMSI-179055",
+      "vessel_name": "Background Vessel 4",
+      "reports": [
+        {
+          "timestamp": "2026-08-29T03:00:00+00:00",
+          "lat": 14.932707324872405,
+          "lon": 66.97015980120788,
+          "speed_knots": 6.2,
+          "course_deg": 183.1
+        },
+        {
+          "timestamp": "2026-08-29T04:00:00+00:00",
+          "lat": 14.828377012653634,
+          "lon": 66.96435915708102,
+          "speed_knots": 6.2,
+          "course_deg": 183.1
+        },
+        {
+          "timestamp": "2026-08-29T05:00:00+00:00",
+          "lat": 14.724045610034608,
+          "lon": 66.95856406795222,
+          "speed_knots": 6.2,
+          "course_deg": 183.1
+        },
+        {
+          "timestamp": "2026-08-29T06:00:00+00:00",
+          "lat": 14.619713124258855,
+          "lon": 66.95277448771823,
+          "speed_knots": 6.2,
+          "course_deg": 183.1
+        },
+        {
+          "timestamp": "2026-08-29T07:00:00+00:00",
+          "lat": 14.515379562578493,
+          "lon": 66.9469903704352,
+          "speed_knots": 6.2,
+          "course_deg": 183.1
+        }
+      ]
+    }
+  ]
+}

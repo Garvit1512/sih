@@ -15,6 +15,12 @@ class HindcastResult(BaseModel):
     origin: Coordinate
     origin_time_window: TimeWindow
     path: GeoJSONLineString
+    origin_tolerance_km: float | None = None
+    """Spatial uncertainty radius around `origin`, in kilometres. `None` means the
+    provider did not report one (true of every current mock fixture). Additive per
+    docs/stage-c-d-integration-plan.md §4.1 -- not yet consumed by triage_service.py or
+    any mock fixture; adding that is a separate, deliberate change once a real Stage C
+    provider actually populates it."""
 
 
 class ForecastResult(BaseModel):

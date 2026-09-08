@@ -6,12 +6,10 @@ from __future__ import annotations
 from app.core.config import settings
 from app.integrations.base import DriftProvider
 from app.integrations.mock.mock_drift import MockDriftProvider
+from app.integrations.real.real_drift import RealDriftProvider
 
 
 def get_drift_provider() -> DriftProvider:
     if settings.stage_c_mode == "mock":
         return MockDriftProvider()
-    raise NotImplementedError(
-        "RealDriftProvider is not yet implemented. Stage C internals are owned by "
-        "another team member; wire in their adapter here when available."
-    )
+    return RealDriftProvider()

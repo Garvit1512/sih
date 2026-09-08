@@ -38,6 +38,26 @@ geodesic functions the triage engine itself uses: **516.3 km** from Platform P-1
 margin, not a boundary-adjacent value. See `docs/decisions.md` #2-#3 for why
 `insufficient-evidence` still runs Stage D rather than skipping it.
 
+## Synthetic Stage C/D datasets (`synthetic_forcing/`, `synthetic_ais/`)
+
+These back the **real** (non-mock) Stage C/D engines
+(`backend/app/integrations/real/`), not the mock fixtures above. See
+`docs/stage-c-d-integration-plan.md` §6/§7 for the full design; short version:
+
+- `synthetic_forcing/<case_id>/current_field.json` — the idealized, per-case current
+  parameters (`base_speed_mps`, `base_bearing_deg`) `RealDriftProvider`'s particle
+  advection runs against. **Not real oceanographic data** (no NOAA/HYCOM/Copernicus
+  data exists anywhere in this repo) — the `disclosure` field says so explicitly.
+- `synthetic_ais/<case_id>/scenario.json` — the deterministically-generated AIS tracks
+  (one planted vessel + background traffic) `RealAttributionProvider` scores. Genuinely
+  synthetic per CLAUDE.md §21, not live traffic.
+
+Both are generated once by `backend/scripts/generate_synthetic_datasets.py`, not
+computed inline per request — re-run that script if the generation logic changes.
+Fully deterministic: re-running it produces byte-identical output. `data/cases/`'s
+`drift.json`/`attribution.json` fixtures above are unrelated and unaffected — they
+still back `mock` mode.
+
 ## Thresholds
 
 `TRIAGE_PLATFORM_RADIUS_KM` / `TRIAGE_PIPELINE_RADIUS_KM` (see `backend/app/core/config.py`)

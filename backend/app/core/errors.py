@@ -40,6 +40,17 @@ class UpstreamContractError(AppError):
     error_type = "upstream_contract_error"
 
 
+class UpstreamUnavailableError(AppError):
+    """Raised when a Stage A/C/D provider fails to respond at all -- timeout,
+    connection error, non-zero exit -- as distinct from `UpstreamContractError`, which
+    means it responded but with a malformed payload. See
+    docs/stage-c-d-integration-plan.md §5.3. Not yet raised anywhere: no real provider
+    exists yet to fail this way. Defined now so real providers have it ready to use."""
+
+    status_code = 503
+    error_type = "upstream_unavailable"
+
+
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,

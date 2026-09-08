@@ -178,6 +178,7 @@ Note the ring closes (first coordinate repeated last) and every pair is `[lon, l
 | `origin` | `Coordinate` | required | the estimated origin point |
 | `origin_time_window` | `TimeWindow` | required | `{start, end}`, both UTC |
 | `path` | `GeoJSONLineString` | required | backward drift path |
+| `origin_tolerance_km` | `float \| None` | optional | spatial uncertainty radius around `origin`; `null` = not reported. Added per `docs/stage-c-d-integration-plan.md` §4.1 — additive, no mock fixture populates it yet, and `triage_service.py` does not yet consume it |
 
 `origin` and `origin_time_window` together are what Stage B tests against infrastructure and what Stage D filters candidate vessels against. `path` is a separate requirement from `origin`: trajectory-alignment scoring needs the whole path, not just its endpoint.
 
@@ -500,7 +501,7 @@ Listed so an unspecified field reads as a known gap. Each needs a decision befor
 2. **Score scales are inconsistent** (§1.4). Detection confidence is 0–1; vessel scores and features are 0–100; `TriageConfidence.value` has no constraint at all. Either unify, or state the split deliberately.
 3. **Triage radii are placeholders.** `TRIAGE_PLATFORM_RADIUS_KM=5.0` and `TRIAGE_PIPELINE_RADIUS_KM=2.0` are marked "not yet team-approved" in both `.env.example` and `config.py`. They should be set against the origin estimate's own spatial tolerance, which `HindcastResult` does not currently carry — see item 5.
 4. **Timestamps typed as `str`.** `CaseSummary.investigation_timestamp`, `CaseSummary.detection_timestamp` and `CaseMeta.date` bypass the UTC enforcement that every other datetime field gets.
-5. **The origin estimate has no spatial tolerance field.** `HindcastResult` carries `origin` and `origin_time_window` but no radius or uncertainty on the point. Triage radius calibration and Stage D candidate filtering both need it.
+5. ~~**The origin estimate has no spatial tolerance field.**~~ **Partially resolved.** `HindcastResult.origin_tolerance_km` (`float | None`) now exists, added per `docs/stage-c-d-integration-plan.md` §4.1. Still open: no mock fixture populates it (all `null` today), and `triage_service.py`'s platform/pipeline radii do not yet consume it to calibrate against origin uncertainty — that remains separate, deliberate work once a real Stage C provider actually reports a tolerance.
 6. **`SpillGeometry.polygon` is `Polygon` only.** Disconnected patches of oil — common in practice — have no representation. Either `MultiPolygon`, or a decision that each patch is a separate detection.
 7. **GeoJSON coordinate arrays are unvalidated for length.** `GeoJSONPoint.coordinates` is `list[float]`; a 5-element array validates.
 8. **`provenance` is `dict[str, str]`, untyped.** Its keys are unspecified in both `InvestigationReport` and `InvestigationCase`.

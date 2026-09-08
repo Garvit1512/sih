@@ -57,3 +57,17 @@ def test_mock_attribution_fixture_validates(case_id: str):
 def test_invalid_detection_payload_fails_validation():
     with pytest.raises(ValidationError):
         DetectionResult.model_validate({"case_id": "X"})  # missing required fields
+
+
+def test_hindcast_origin_tolerance_km_defaults_to_none():
+    with (CASES_DIR / "OS-001" / "drift.json").open(encoding="utf-8") as f:
+        result = DriftResult.model_validate(json.load(f))
+    assert result.hindcast.origin_tolerance_km is None
+
+
+def test_hindcast_origin_tolerance_km_accepts_a_value():
+    with (CASES_DIR / "OS-001" / "drift.json").open(encoding="utf-8") as f:
+        payload = json.load(f)
+    payload["hindcast"]["origin_tolerance_km"] = 3.2
+    result = DriftResult.model_validate(payload)
+    assert result.hindcast.origin_tolerance_km == 3.2

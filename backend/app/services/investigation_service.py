@@ -36,7 +36,7 @@ def run_investigation(
     attribution_provider = attribution_provider or get_attribution_provider()
 
     detection = detection_provider.get_result(case_id)
-    drift = drift_provider.get_result(case_id)
+    drift = drift_provider.get_result(case_id, detection=detection)
 
     infrastructure = load_infrastructure(INFRASTRUCTURE_DIR)
     triage = triage_service.evaluate_triage(
@@ -48,7 +48,7 @@ def run_investigation(
     )
 
     if triage.routing.run_vessel_attribution:
-        attribution = attribution_provider.get_result(case_id)
+        attribution = attribution_provider.get_result(case_id, drift=drift)
         attribution = attribution.model_copy(
             update={"low_confidence": triage.routing.low_confidence}
         )
