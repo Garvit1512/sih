@@ -121,6 +121,7 @@ const FRAGMENT_SHADER = /* glsl */ `
   uniform vec3 uMoonColor;
   uniform vec3 uLightDir;
   uniform float uMaxAmplitude;
+  uniform float uTime;
   varying float vHeight;
   varying vec3 vNormal;
   varying vec3 vWorldPosition;
@@ -130,6 +131,40 @@ const FRAGMENT_SHADER = /* glsl */ `
     vec3 normal = normalize(vNormal);
     vec3 viewDir = normalize(cameraPosition - vWorldPosition);
     vec3 lightDir = normalize(uLightDir);
+    float dist = length(cameraPosition - vWorldPosition);
+
+    // Capillary detail. The mesh can't carry this frequency — near the camera
+    // each quad covers a lot of screen — but the normal can, and that is what
+    // stops the foreground reading as a flat gradient. Strength falls off with
+    // distance so the horizon stays smooth instead of turning to noise.
+    vec2 wp = vWorldPosition.xz;
+
+    // Directions are non-axis-aligned and mutually incommensurate, and the
+    // sample point is domain-warped first. Axis-aligned sine products alone
+    // settle into a visible diamond lattice — this is what avoids that.
+    vec2 dA = vec2(0.807, 0.591);
+    vec2 dB = vec2(-0.383, 0.924);
+    vec2 dC = vec2(0.556, -0.831);
+    vec2 dD = vec2(-0.966, -0.259);
+
+    vec2 warp = vec2(
+      sin(dot(wp, dB) * 0.21 + uTime * 0.23),
+      sin(dot(wp, dC) * 0.17 - uTime * 0.19)
+    ) * 1.9;
+    vec2 sp = wp + warp;
+
+    float rA = sin(dot(sp, dA) * 1.9 + uTime * 1.05);
+    float rB = sin(dot(sp, dB) * 3.7 - uTime * 1.45);
+    float rC = sin(dot(sp, dC) * 7.1 + uTime * 2.0);
+    float rD = sin(dot(sp, dD) * 13.3 - uTime * 2.7);
+
+    float detailStrength = (1.0 - smoothstep(3.0, 70.0, dist)) * 0.3;
+    vec3 detailNormal = vec3(
+      rA * dA.x * 0.5 + rB * dB.x * 0.32 + rC * dC.x * 0.18 + rD * dD.x * 0.1,
+      0.0,
+      rA * dA.y * 0.5 + rB * dB.y * 0.32 + rC * dC.y * 0.18 + rD * dD.y * 0.1
+    );
+    normal = normalize(normal + detailNormal * detailStrength);
 
     // Three-tone gradient across the FULL height range rather than a single
     // deep->crest mix biased at the peaks. Every part of a wave — trough,
@@ -145,17 +180,16 @@ const FRAGMENT_SHADER = /* glsl */ `
     // Broad moonlit sheen — a wide, soft reflection path across the water...
     vec3 halfVector = normalize(lightDir + viewDir);
     float ndoth = max(dot(normal, halfVector), 0.0);
-    float broadSpec = pow(ndoth, 9.0) * 0.22;
+    float broadSpec = pow(ndoth, 6.5) * 0.26;
 
     // ...plus a tight sparkle broken up by the detail phase, which is what
     // reads as individual wave facets catching the moon.
     float sparkle = 0.5 + 0.5 * smoothstep(0.15, 1.0, vDetail);
     float tightSpec = pow(ndoth, 70.0) * 0.7 * sparkle;
 
-    // Attenuate the glitter close to camera, otherwise the near field
-    // blows out to a white wash instead of reading as water.
-    float dist = length(cameraPosition - vWorldPosition);
-    float nearFalloff = smoothstep(6.0, 34.0, dist);
+    // Keep a floor under the near-field response: fully attenuating it left
+    // the whole foreground as dead gradient.
+    float nearFalloff = mix(0.55, 1.0, smoothstep(2.0, 40.0, dist));
     vec3 specularColor = uMoonColor * (broadSpec + tightSpec) * nearFalloff;
 
     float fresnel = pow(1.0 - clamp(dot(normal, viewDir), 0.0, 1.0), 3.0);

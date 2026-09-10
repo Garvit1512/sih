@@ -16,6 +16,10 @@ const DATA_STREAM_ITEMS = [
 
 export default function InvestigatePage() {
   const investigation = useInvestigation();
+  // Only a genuine, non-failed backend result counts as "started".
+  const hasResult =
+    investigation.investigation !== null &&
+    investigation.investigation.status !== "failed";
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -24,7 +28,9 @@ export default function InvestigatePage() {
       <div className="flex min-h-0 flex-1">
         <div className="relative min-w-0 flex-1">
           <InvestigationMap
-            investigationStarted={investigation.investigationStarted}
+            sarFile={investigation.sarUpload.file}
+            detection={investigation.investigation?.detection ?? null}
+            investigationStarted={hasResult}
             layers={investigation.layers}
             onToggleLayer={investigation.toggleLayer}
           />
@@ -33,18 +39,26 @@ export default function InvestigatePage() {
         <InvestigationSidebar
           caseName={investigation.caseName}
           onCaseNameChange={investigation.setCaseName}
+          cases={investigation.cases}
+          casesLoading={investigation.casesLoading}
+          casesError={investigation.casesError}
+          selectedCaseId={investigation.selectedCaseId}
+          onSelectCase={investigation.selectCase}
+          onReloadCases={investigation.reloadCases}
+          investigation={investigation.investigation}
+          isRunning={investigation.isRunning}
+          runError={investigation.runError}
+          onStartInvestigation={investigation.startInvestigation}
+          canStartInvestigation={investigation.canStartInvestigation}
           sarUpload={investigation.sarUpload}
           onSelectSarFile={investigation.selectSarFile}
           onRejectSarFile={investigation.rejectSarFile}
           onClearSarFile={investigation.clearSarFile}
           stages={investigation.stages}
-          canStartInvestigation={investigation.canStartInvestigation}
-          investigationStarted={investigation.investigationStarted}
-          onStartInvestigation={investigation.startInvestigation}
         />
       </div>
 
-      <DataStreamsFooter investigationStarted={investigation.investigationStarted} />
+      <DataStreamsFooter investigationStarted={hasResult} />
     </div>
   );
 }
