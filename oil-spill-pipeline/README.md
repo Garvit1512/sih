@@ -26,8 +26,35 @@ npm run dev
 Open http://localhost:3000 — the dev server picks the next free port if 3000
 is taken, so check the terminal output.
 
-**The app runs fine with no further setup.** Everything works out of the box
-except the map basemap, which needs a free token (below).
+The landing page at `/` works with no further setup.
+
+**`/investigate` needs the backend running** — it loads real demonstration
+cases from the API and runs the actual investigation pipeline. See below.
+
+## Backend (required for /investigate)
+
+The workspace fetches cases from the API and runs the real pipeline, so the
+backend must be running or you'll see *"Could not reach the backend"*.
+
+```bash
+cd backend
+cp .env.example .env          # sets CORS_ALLOWED_ORIGIN=http://localhost:3000
+python -m venv .venv          # first time only
+.venv/Scripts/activate        # Windows;  source .venv/bin/activate on macOS/Linux
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Backend runs on http://localhost:8000 — check `GET /api/health`.
+
+**Do not skip `cp .env.example .env`.** Without it the backend defaults to
+allowing `http://localhost:5173` (Vite's port, predating this frontend), the
+browser blocks every request as a CORS violation, and the frontend reports it
+as *"Could not reach the backend"* — the same message you'd get if it weren't
+running at all. If the backend is up and you still see that error, this is
+almost always why.
+
+No third-party API keys are needed for the backend.
 
 ## Mapbox token (optional, but needed for the real basemap)
 
@@ -72,8 +99,8 @@ sent to the browser by design, which is how the map renders at all.
 
 ## Notes
 
-- The backend is **not required** to run the frontend — there are no API calls
-  yet, and all demo data is local sample data.
+- `/` uses its own sample visualisation content and needs no backend. It is an
+  introduction, not analysis output.
 - `/` is WebGL-heavy. On a machine without a usable GPU it will still run, but
   expect a lower frame rate.
 - `?p=<0-1>` on `/` pins the cinematic sequence to a scroll fraction

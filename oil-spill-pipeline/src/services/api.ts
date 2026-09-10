@@ -86,10 +86,14 @@ async function request<T>(
         { kind: "timeout" }
       );
     }
-    // A network-level failure here is indistinguishable from a CORS rejection
-    // in the browser — both surface as a bare TypeError — so name both.
+    // The browser gives JS the same bare TypeError whether the server is down
+    // or the response was blocked by CORS, so this cannot be narrowed here.
+    // Name both causes, most likely first, rather than a vague failure.
     throw new ApiError(
-      `Could not reach the backend at ${API_BASE_URL}. Check that it is running, and that it allows requests from this origin.`,
+      `Could not reach the backend at ${API_BASE_URL}. Either it isn't running, ` +
+        `or it is running but rejected this origin (CORS) — check that ` +
+        `backend/.env exists with CORS_ALLOWED_ORIGIN=${typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"}, ` +
+        `then restart it.`,
       { kind: "offline" }
     );
   } finally {
