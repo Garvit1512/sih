@@ -6,6 +6,7 @@ import {
   getCases,
   runInvestigation as runInvestigationRequest,
 } from "@/services/api";
+import { useInvestigationPlayback } from "@/hooks/use-investigation-playback";
 import type {
   CaseMeta,
   InvestigationCase,
@@ -49,12 +50,17 @@ const STAGE_DEFINITIONS: ReadonlyArray<{
   { id: "verdict", order: 5, label: "VERDICT", subtitle: "Investigator's Dossier" },
 ];
 
+/**
+ * Layers default to on: the phase sequence, not the toggles, decides when a
+ * layer first appears. The toggles exist so an investigator can take a layer
+ * back off once it has been revealed.
+ */
 const DEFAULT_LAYERS: MapLayerToggle[] = [
-  { id: "satellite", label: "SATELLITE", active: true },
-  { id: "oceanographic", label: "OCEANOGRAPHIC", active: false },
-  { id: "ais", label: "AIS", active: false },
-  { id: "infrastructure", label: "INFRASTRUCTURE", active: false },
-  { id: "weather", label: "WEATHER", active: false },
+  { id: "detection", label: "DETECTION", active: true },
+  { id: "infrastructure", label: "INFRASTRUCTURE", active: true },
+  { id: "drift", label: "DRIFT", active: true },
+  { id: "forecast", label: "FORECAST", active: true },
+  { id: "basemap", label: "SATELLITE", active: false },
 ];
 
 function describeError(error: unknown, fallback: string): string {
@@ -225,7 +231,13 @@ export function useInvestigation() {
 
   const stages = useMemo(() => deriveStages(investigation), [investigation]);
 
+  // Sequencing of the already-returned result: which evidence is on screen,
+  // and when. It never gates or refetches a stage.
+  const playback = useInvestigationPlayback(investigation);
+
   return {
+    playback,
+
     caseName,
     setCaseName,
 
