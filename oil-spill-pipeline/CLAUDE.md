@@ -183,6 +183,60 @@ investigation wizard takes priority; do not front-load landing-page work
 ahead of the functional product, per parent §64/§82 (a reliable end-to-end
 demo beats extra polish).
 
+## 7A. CINEMATIC VISUAL QUALITY (the `/` experience)
+
+This section governs the quality bar for the cinematic landing experience.
+It is a *visual* standard, not a technology list — §2 still decides the stack.
+
+**The ocean is the product's primary visual.** It must read immediately as a
+real, moving 3D sea: layered wave scales (large swell, medium wave, fine
+ripple), visible crest structure, directional moonlight, broken specular
+highlights, Fresnel response, and distance haze. A dark surface with
+technically-correct geometry that visually reads as flat black is a failure,
+not a stylistic choice. Achieve tonal range through shading — a three-tone
+height gradient, specular, foam at crests — never by flatly raising overall
+brightness.
+
+**Night maritime atmosphere.** This is Earth's night ocean under surveillance:
+stars with horizon extinction, a small low moon whose reflection path lines up
+with the water's specular highlights, atmospheric fog, and clear separation
+between sky, horizon, distant water and foreground water. No sunsets, no
+nebulae, no purple space, no colour washes.
+
+**Analytical UI stays restrained.** Overlays are small, anchored annotations —
+coordinate readouts, instrument-style dials, short narrative headings. Never a
+dashboard, HUD frame, fake terminal, glowing border, or floating glass card
+over the scene. Most of the frame stays ocean.
+
+**Procedural 3D over icons.** Satellites, vessels and other physical objects
+are built from primitive geometry (box / cylinder / cone / plane groups) and
+lit by the scene. Never a flat sprite, 2D icon or image standing in for a 3D
+object.
+
+**Aesthetic exclusions.** No cyberpunk or neon; no giant centered text with no
+surrounding composition; no excessive uppercase, letter-spacing or monospace;
+no rounded-card pile-ups; no wireframe rectangles as decoration. JetBrains Mono
+is for genuine telemetry (coordinates, timestamps, sensor metadata, numeric
+readouts); narrative headings and body copy are Inter.
+
+**Performance constraints.** Prefer shader work over polygon count. Instance or
+batch repeated geometry (stars, flow markers). Keep ocean subdivision
+reasonable, keep adaptive DPR and `PerformanceMonitor` in place, and dispose
+every manually-constructed geometry (R3F only auto-disposes JSX-declared
+objects).
+
+**Accessibility / reduced motion.** Under `prefers-reduced-motion`: keep the
+ocean animating, damp camera movement, disable pointer parallax and smooth
+scrolling, reduce particle motion, and keep the full narrative readable. The
+closing CTA is always a real, keyboard-reachable link.
+
+**Visual-first verification.** Cinematic work is not verified by typecheck,
+lint, build, curl or SSR HTML. It must be inspected in a real browser —
+scrolled through the full sequence, with pointer interaction, at the target
+1440×900 — before it is described as working. If browser access is
+unavailable, say so explicitly and ask for a manual review rather than
+implying the visual result has been confirmed.
+
 ## 8. COMPONENT DISCIPLINE
 
 Do not use 21st.dev or React Bits components merely because they are

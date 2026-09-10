@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { interFont } from "@/lib/fonts";
+import { manropeFont } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: "Investigation Workspace | Oil Spill Investigation Pipeline",
@@ -19,7 +19,7 @@ export default function InvestigateLayout({
 }) {
   return (
     <div
-      className={`${interFont.className} h-dvh w-full overflow-hidden bg-[#05070a] text-white/90 antialiased`}
+      className={`${manropeFont.className} h-dvh w-full overflow-hidden bg-[#05070a] text-white/90 antialiased`}
     >
       {children}
     </div>
