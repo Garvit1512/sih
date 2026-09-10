@@ -1,0 +1,134 @@
+{
+  "config": {
+    "encoder": "resnet34",
+    "encoder_weights": "imagenet",
+    "in_channels": 3,
+    "tile_size": 256,
+    "batch_size": 8,
+    "epochs": 15,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "dice_weight": 0.5,
+    "num_workers": 0,
+    "seed": 1337,
+    "device": "mps",
+    "class_weights": [
+      0.5,
+      3.0,
+      2.0,
+      2.0,
+      1.0
+    ]
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.3501157008111477,
+      "val_mean_iou": 0.6868172389266873,
+      "val_oil_spill_iou": 0.6429175123044505,
+      "seconds": 186.5
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.25091750206691876,
+      "val_mean_iou": 0.6965908040301533,
+      "val_oil_spill_iou": 0.6536011526314925,
+      "seconds": 223.0
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.24516852407583167,
+      "val_mean_iou": 0.5874295301397743,
+      "val_oil_spill_iou": 0.5667441456876483,
+      "seconds": 250.6
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.236020537288416,
+      "val_mean_iou": 0.7175004255787379,
+      "val_oil_spill_iou": 0.6728189737318293,
+      "seconds": 266.5
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.221166277091418,
+      "val_mean_iou": 0.721664010929597,
+      "val_oil_spill_iou": 0.6792750364414895,
+      "seconds": 259.7
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.21539073685805002,
+      "val_mean_iou": 0.7466294667826365,
+      "val_oil_spill_iou": 0.6985047715924932,
+      "seconds": 253.8
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.20551487157742182,
+      "val_mean_iou": 0.7721616925461368,
+      "val_oil_spill_iou": 0.7243695643952864,
+      "seconds": 254.6
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.20175844186118672,
+      "val_mean_iou": 0.7093252906894651,
+      "val_oil_spill_iou": 0.6674271246682846,
+      "seconds": 267.8
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.19726027450746014,
+      "val_mean_iou": 0.7644604161117448,
+      "val_oil_spill_iou": 0.7199884048874043,
+      "seconds": 259.3
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.18792320732914267,
+      "val_mean_iou": 0.7570074603337771,
+      "val_oil_spill_iou": 0.7108458009434752,
+      "seconds": 277.9
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.19139401171179043,
+      "val_mean_iou": 0.7842075686595537,
+      "val_oil_spill_iou": 0.7395159030098002,
+      "seconds": 262.1
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.18348629742506004,
+      "val_mean_iou": 0.7767777569851848,
+      "val_oil_spill_iou": 0.7329666189386904,
+      "seconds": 270.7
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.18214980649451415,
+      "val_mean_iou": 0.7738659492488014,
+      "val_oil_spill_iou": 0.7304191921544488,
+      "seconds": 292.4
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.17408780604600907,
+      "val_mean_iou": 0.7983515210207288,
+      "val_oil_spill_iou": 0.7541500635627001,
+      "seconds": 281.0
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.1767734577968007,
+      "val_mean_iou": 0.7678576470759497,
+      "val_oil_spill_iou": 0.7250230103707358,
+      "seconds": 262.1
+    }
+  ],
+  "best_oil_spill_iou": 0.7541500635627001,
+  "best_checkpoint": "/Users/lavanay/projects/sih/stage_a/checkpoints/best.pt",
+  "val_split_used": "test",
+  "validation_caveat": "Checkpoint selected on the official test split; Stage 10 metrics from this run are optimistic by an unknown margin. Disclose alongside the number."
+}
