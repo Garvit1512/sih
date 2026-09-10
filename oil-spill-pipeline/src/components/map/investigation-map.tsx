@@ -2,19 +2,50 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map, {
-  Layer,
   ScaleControl,
-  Source,
   type MapRef,
   type ViewStateChangeEvent,
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useReducedMotion } from "motion/react";
 import { Compass, FileWarning, LocateFixed, Minus, Plus, Satellite } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { jetbrainsMono } from "@/lib/fonts";
 import { LayerControl } from "@/components/investigation/layer-control";
+import { DetectionLayer } from "@/components/map/layers/detection-layer";
+import { PipelineLayer } from "@/components/map/layers/infrastructure-layer";
+import {
+  ForecastLayer,
+  HindcastLayer,
+} from "@/components/map/layers/drift-layer";
+import {
+  InvestigationMarkers,
+  type MarkerKind,
+} from "@/components/map/layers/investigation-markers";
+import { PhaseNarrative } from "@/components/map/phase-narrative";
+import { PhaseProgress } from "@/components/map/phase-progress";
+import { InfrastructureBearing } from "@/components/map/infrastructure-bearing";
+import { FeatureInspector } from "@/components/map/feature-inspector";
+import {
+  boundsOfFeatures,
+  forecastFeature,
+  hindcastFeature,
+  nearestPlatformFeature,
+  originFeature,
+  padBounds,
+  spillCentroidFeature,
+  spillPolygonFeature,
+  type MapBounds,
+} from "@/lib/investigation-geo";
+import { PHASE_ORDER, type PhaseId } from "@/lib/investigation-phases";
+import type { InvestigationPlayback } from "@/hooks/use-investigation-playback";
+import {
+  findFeatureById,
+  useInfrastructureGeometry,
+} from "@/hooks/use-infrastructure-geometry";
 import type {
-  DetectionResult,
+  InvestigationCase,
+  InvestigationStage,
   MapLayerId,
   MapLayerToggle,
 } from "@/types/investigation";
@@ -22,12 +53,24 @@ import { isGeoTiff, useObjectUrl } from "@/hooks/use-object-url";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-/** Fictional initial investigation location (oil-spill-pipeline CLAUDE.md §6). */
-const INITIAL_COORDINATES = { lat: 18.5421, lon: 72.8234 };
-const INITIAL_ZOOM = 6.4;
+const DARK_STYLE = "mapbox://styles/mapbox/dark-v11";
+const SATELLITE_STYLE = "mapbox://styles/mapbox/satellite-streets-v12";
+
+/** Arabian Sea overview — the region the prepared cases sit in. */
+const INITIAL_COORDINATES = { lat: 13.5, lon: 68.5 };
+const INITIAL_ZOOM = 5.2;
 
 const MIN_ZOOM = 1.5;
 const MAX_ZOOM = 18;
+
+/** Camera framing per phase, in seconds of arc rather than zoom levels. */
+const MIN_SPAN_DEGREES: Record<PhaseId, number> = {
+  detection: 0.09,
+  "rule-out": 0.14,
+  "time-travel": 0.14,
+  lineup: 0.12,
+  verdict: 0.18,
+};
 
 interface ViewState {
   longitude: number;
@@ -48,69 +91,143 @@ const INITIAL_VIEW_STATE: ViewState = {
 interface InvestigationMapProps {
   /** The ingested scene — a local reference image, never analysed. */
   sarFile?: File | null;
-  /** Real Stage A result from the backend; drives the rendered geometry. */
-  detection?: DetectionResult | null;
+  /** The whole backend result; every drawn feature comes out of this. */
+  investigation: InvestigationCase | null;
   investigationStarted: boolean;
+  stages: InvestigationStage[];
+  playback: InvestigationPlayback;
   layers: MapLayerToggle[];
   onToggleLayer: (id: MapLayerId) => void;
 }
 
 export function InvestigationMap({
   sarFile = null,
-  detection = null,
+  investigation,
   investigationStarted,
+  stages,
+  playback,
   layers,
   onToggleLayer,
 }: InvestigationMapProps) {
   const mapRef = useRef<MapRef | null>(null);
+  const reducedMotion = useReducedMotion() ?? false;
   const sceneUrl = useObjectUrl(sarFile);
   const sceneIsGeoTiff = isGeoTiff(sarFile);
   const showScene = investigationStarted && sarFile !== null;
   const [viewState, setViewState] = useState<ViewState>(INITIAL_VIEW_STATE);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [inspected, setInspected] = useState<MarkerKind | null>(null);
   const hasToken = Boolean(MAPBOX_TOKEN);
 
-  /**
-   * The backend's spill polygon, as a GeoJSON Feature for Mapbox. Coordinates
-   * are passed through untouched — they are already [lon, lat] per the
-   * GeoJSON spec, which is exactly what Mapbox expects.
-   */
-  const spillFeature = useMemo(() => {
-    if (!detection) return null;
-    return {
-      type: "Feature" as const,
-      properties: {},
-      geometry: detection.spill.polygon,
-    };
-  }, [detection]);
+  const infrastructure = useInfrastructureGeometry();
+  // A plain record, not a `Map` — `Map` is the react-map-gl component here.
+  const layerActive = useMemo(() => {
+    const active: Partial<Record<MapLayerId, boolean>> = {};
+    for (const layer of layers) active[layer.id] = layer.active;
+    return active;
+  }, [layers]);
+  const isLayerOn = useCallback(
+    (id: MapLayerId) => layerActive[id] ?? false,
+    [layerActive]
+  );
 
-  // Frame the real geometry when a result arrives, rather than leaving the
-  // camera on the default view.
+  /* -------------------------------------------------------------- */
+  /* Features — straight from the backend response                   */
+  /* -------------------------------------------------------------- */
+
+  const detection = investigation?.detection ?? null;
+  const triage = investigation?.triage ?? null;
+  const drift = investigation?.drift ?? null;
+
+  const spill = useMemo(() => spillPolygonFeature(detection), [detection]);
+  const centroid = useMemo(() => spillCentroidFeature(detection), [detection]);
+  const origin = useMemo(() => originFeature(drift), [drift]);
+  const hindcast = useMemo(() => hindcastFeature(drift), [drift]);
+  const forecast = useMemo(() => forecastFeature(drift), [drift]);
+  const platform = useMemo(() => nearestPlatformFeature(triage), [triage]);
+
+  // Only the route the triage engine actually named is drawn.
+  const pipeline = useMemo(
+    () => findFeatureById(infrastructure.pipelines, triage?.evidence.pipeline.id),
+    [infrastructure.pipelines, triage]
+  );
+
+  const platformNearby = triage?.evidence.platform.nearby ?? false;
+  const pipelineNearby = triage?.evidence.pipeline.nearby ?? false;
+
+  /* -------------------------------------------------------------- */
+  /* Phase-driven visibility                                         */
+  /* -------------------------------------------------------------- */
+
+  const phaseIndex = PHASE_ORDER.indexOf(playback.activePhase);
+  const reached = useCallback(
+    (phase: PhaseId) => investigationStarted && phaseIndex >= PHASE_ORDER.indexOf(phase),
+    [investigationStarted, phaseIndex]
+  );
+
+  const showDetection = reached("detection") && isLayerOn("detection");
+  const showInfrastructure = reached("rule-out") && isLayerOn("infrastructure");
+  const showDrift = reached("time-travel") && isLayerOn("drift");
+  const showForecast = reached("verdict") && isLayerOn("forecast");
+
+  /* -------------------------------------------------------------- */
+  /* Camera                                                          */
+  /* -------------------------------------------------------------- */
+
+  const phaseBounds = useMemo((): MapBounds | null => {
+    if (!investigationStarted) return null;
+
+    // Infrastructure is only framed when the backend called it nearby —
+    // pulling a 478 km-distant platform into frame would lose the slick.
+    const framedPlatform = platformNearby ? platform : null;
+    const framedPipeline = pipelineNearby ? pipeline : null;
+
+    switch (playback.activePhase) {
+      case "detection":
+        return boundsOfFeatures([spill, centroid]);
+      case "rule-out":
+        return boundsOfFeatures([spill, centroid, framedPlatform, framedPipeline]);
+      case "time-travel":
+        return boundsOfFeatures([spill, hindcast, origin]);
+      case "lineup":
+        return boundsOfFeatures([spill, origin, hindcast]);
+      case "verdict":
+        return boundsOfFeatures([
+          spill,
+          hindcast,
+          forecast,
+          origin,
+          framedPlatform,
+          framedPipeline,
+        ]);
+    }
+  }, [
+    investigationStarted,
+    playback.activePhase,
+    spill,
+    centroid,
+    hindcast,
+    forecast,
+    origin,
+    platform,
+    pipeline,
+    platformNearby,
+    pipelineNearby,
+  ]);
+
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !detection) return;
+    if (!map || !mapLoaded || !phaseBounds) return;
 
-    const ring = detection.spill.polygon.coordinates[0];
-    if (!ring || ring.length === 0) return;
+    map.fitBounds(padBounds(phaseBounds, MIN_SPAN_DEGREES[playback.activePhase]), {
+      padding: { top: 80, bottom: 205, left: 120, right: 205 },
+      duration: reducedMotion ? 0 : 1500,
+      maxZoom: 12.5,
+      essential: true,
+    });
+  }, [phaseBounds, playback.activePhase, mapLoaded, reducedMotion]);
 
-    let minLon = ring[0][0];
-    let maxLon = ring[0][0];
-    let minLat = ring[0][1];
-    let maxLat = ring[0][1];
-    for (const [lon, lat] of ring) {
-      minLon = Math.min(minLon, lon);
-      maxLon = Math.max(maxLon, lon);
-      minLat = Math.min(minLat, lat);
-      maxLat = Math.max(maxLat, lat);
-    }
-
-    map.fitBounds(
-      [
-        [minLon, minLat],
-        [maxLon, maxLat],
-      ],
-      { padding: 140, duration: 1200, maxZoom: 12 }
-    );
-  }, [detection]);
+  /* -------------------------------------------------------------- */
 
   const zoomBy = useCallback((delta: number) => {
     setViewState((current) => ({
@@ -124,13 +241,24 @@ export function InvestigationMap({
   }, []);
 
   const recenter = useCallback(() => {
+    const map = mapRef.current;
+    if (map && phaseBounds) {
+      map.fitBounds(padBounds(phaseBounds, MIN_SPAN_DEGREES[playback.activePhase]), {
+        padding: { top: 80, bottom: 205, left: 120, right: 205 },
+        duration: reducedMotion ? 0 : 900,
+        maxZoom: 12.5,
+      });
+      return;
+    }
     setViewState((current) => ({
       ...current,
       longitude: INITIAL_COORDINATES.lon,
       latitude: INITIAL_COORDINATES.lat,
       zoom: INITIAL_ZOOM,
     }));
-  }, []);
+  }, [phaseBounds, playback.activePhase, reducedMotion]);
+
+  const narrative = playback.narratives?.[playback.activePhase] ?? null;
 
   return (
     <div
@@ -144,33 +272,54 @@ export function InvestigationMap({
           ref={mapRef}
           {...viewState}
           onMove={(event: ViewStateChangeEvent) => setViewState(event.viewState)}
+          onLoad={() => setMapLoaded(true)}
+          onClick={() => setInspected(null)}
           mapboxAccessToken={MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/mapbox/dark-v11"
+          mapStyle={isLayerOn("basemap") ? SATELLITE_STYLE : DARK_STYLE}
           style={{ width: "100%", height: "100%" }}
           minZoom={MIN_ZOOM}
           maxZoom={MAX_ZOOM}
         >
           <ScaleControl position="bottom-right" unit="metric" />
 
-          {/* Real Stage A geometry from the backend — never a sample shape. */}
-          {spillFeature && (
-            <Source id="spill-source" type="geojson" data={spillFeature}>
-              <Layer
-                id="spill-fill"
-                type="fill"
-                paint={{ "fill-color": "#4FB8D9", "fill-opacity": 0.18 }}
-              />
-              <Layer
-                id="spill-outline"
-                type="line"
-                paint={{
-                  "line-color": "#7FD3E6",
-                  "line-width": 1.6,
-                  "line-opacity": 0.9,
-                }}
-              />
-            </Source>
-          )}
+          <DetectionLayer
+            feature={spill}
+            visible={showDetection}
+            instant={reducedMotion}
+          />
+
+          <PipelineLayer
+            feature={pipeline}
+            nearby={pipelineNearby}
+            visible={showInfrastructure}
+            instant={reducedMotion}
+          />
+
+          <ForecastLayer
+            feature={forecast}
+            visible={showForecast}
+            instant={reducedMotion}
+          />
+
+          <HindcastLayer
+            feature={hindcast}
+            visible={showDrift}
+            instant={reducedMotion}
+          />
+
+          <InvestigationMarkers
+            centroid={centroid}
+            origin={origin}
+            platform={platform}
+            showCentroid={showDetection}
+            showOrigin={showDrift}
+            showPlatform={showInfrastructure}
+            emphasiseOrigin={playback.activePhase === "lineup"}
+            platformNearby={platformNearby}
+            platformLabel={triage?.evidence.platform.id ?? null}
+            reducedMotion={reducedMotion}
+            onSelect={setInspected}
+          />
         </Map>
       ) : (
         <FallbackOceanBackdrop />
@@ -183,22 +332,62 @@ export function InvestigationMap({
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 45%, rgba(2,4,7,0.5) 100%)",
+            "radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 45%, rgba(2,4,7,0.55) 100%)",
         }}
       />
 
       {showScene && (
-        <SceneOverlay
-          url={sceneUrl}
-          name={sarFile.name}
-          geoTiff={sceneIsGeoTiff}
-        />
+        <SceneOverlay url={sceneUrl} name={sarFile.name} geoTiff={sceneIsGeoTiff} />
       )}
 
       {!investigationStarted && <EmptyStateOverlay />}
       {!hasToken && <DevModeBadge />}
 
       <div className="pointer-events-none absolute inset-0">
+        {investigationStarted && (
+          <div className="pointer-events-auto absolute left-4 top-4">
+            <PhaseProgress
+              stages={stages}
+              activePhase={playback.activePhase}
+              revealedPhases={playback.revealedPhases}
+              isPlaying={playback.isPlaying}
+              isComplete={playback.isComplete}
+              onSelectPhase={playback.selectPhase}
+              onPause={playback.pause}
+              onResume={playback.resume}
+              onReplay={playback.replay}
+              onSkipToEnd={playback.skipToEnd}
+            />
+          </div>
+        )}
+
+        {investigationStarted && (
+          <div className="pointer-events-auto absolute bottom-4 left-4 flex flex-col items-start gap-2.5">
+            <FeatureInspector
+              kind={inspected}
+              investigation={investigation}
+              onClose={() => setInspected(null)}
+              reducedMotion={reducedMotion}
+            />
+
+            {/* Ruled-out infrastructure that is too distant to draw. */}
+            <InfrastructureBearing
+              origin={origin}
+              platform={platform}
+              distanceKm={triage?.evidence.platform.distance_km ?? null}
+              name={triage?.evidence.platform.id ?? null}
+              visible={
+                playback.activePhase === "rule-out" &&
+                showInfrastructure &&
+                !platformNearby
+              }
+              reducedMotion={reducedMotion}
+            />
+
+            <PhaseNarrative narrative={narrative} reducedMotion={reducedMotion} />
+          </div>
+        )}
+
         <div className="pointer-events-auto absolute right-4 top-4">
           <LayerControl layers={layers} onToggle={onToggleLayer} />
         </div>
@@ -273,7 +462,7 @@ function FallbackOceanBackdrop() {
 function DevModeBadge() {
   return (
     <div
-      className="pointer-events-none absolute left-4 top-4 flex items-center gap-1.5 rounded-sm border border-white/10 bg-[#0b0f16]/75 px-2 py-1 text-[9px] uppercase tracking-[0.08em] text-white/45"
+      className="pointer-events-none absolute left-4 bottom-4 flex items-center gap-1.5 rounded-sm border border-white/10 bg-[#0b0f16]/75 px-2 py-1 text-[9px] uppercase tracking-[0.08em] text-white/45"
       title="Set NEXT_PUBLIC_MAPBOX_TOKEN in .env.local to enable the basemap"
     >
       <Satellite className="size-3" aria-hidden />
@@ -297,8 +486,10 @@ function SceneOverlay({
   geoTiff: boolean;
 }) {
   return (
-    <div className="absolute inset-0 flex flex-col">
-      <div className="relative flex min-h-0 flex-1 items-center justify-center p-8">
+    // Left column, below the phase strip — the right edge belongs to the
+    // layer control, the zoom rail and the scale bar.
+    <div className="pointer-events-none absolute left-4 top-[58px] w-[172px] overflow-hidden rounded-sm border border-white/[0.08] bg-[#0b0f16]/85">
+      <div className="relative flex h-[120px] items-center justify-center bg-[#05070a]">
         {url ? (
           // Local object URL for a user-selected file; next/image cannot
           // optimise a blob.
@@ -306,18 +497,15 @@ function SceneOverlay({
           <img
             src={url}
             alt={`Ingested SAR scene: ${name}`}
-            className="max-h-full max-w-full object-contain opacity-90"
+            className="max-h-full max-w-full object-contain opacity-85"
           />
         ) : (
-          <div className="max-w-sm text-center">
-            <FileWarning className="mx-auto size-6 text-[#D8A34E]/70" aria-hidden />
-            <p className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-white/70">
-              Scene ingested — no preview
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-white/40">
+          <div className="px-3 text-center">
+            <FileWarning className="mx-auto size-4 text-[#D8A34E]/70" aria-hidden />
+            <p className="mt-2 text-[9.5px] leading-snug text-white/40">
               {geoTiff
-                ? "GeoTIFF has no browser decoder, so the scene can't be displayed here. It will be rendered once Stage A processing returns a raster."
-                : "This file type can't be displayed in the browser."}
+                ? "GeoTIFF has no browser decoder."
+                : "This file type can't be displayed."}
             </p>
           </div>
         )}
@@ -325,14 +513,12 @@ function SceneOverlay({
 
       <div
         className={cn(
-          "flex items-center justify-between gap-3 border-t border-white/10 bg-[#0b0f16]/80 px-4 py-2 text-[10px] text-white/45",
+          "space-y-0.5 border-t border-white/[0.08] px-2 py-1.5 text-[8.5px] text-white/40",
           jetbrainsMono.className
         )}
       >
-        <span className="truncate">{name}</span>
-        <span className="shrink-0 text-white/30">
-          Uploaded scene · not georeferenced
-        </span>
+        <p className="truncate">{name}</p>
+        <p className="text-white/25">Uploaded scene · not georeferenced</p>
       </div>
     </div>
   );
@@ -348,8 +534,9 @@ function EmptyStateOverlay() {
       <p className="text-[13px] font-medium tracking-[0.04em] text-white/75">
         No Active Case
       </p>
-      <p className="mt-1.5 max-w-[220px] text-[12px] leading-relaxed text-white/40">
-        Upload SAR imagery to begin investigation
+      <p className="mt-1.5 max-w-[240px] text-[12px] leading-relaxed text-white/40">
+        Select a prepared case and start the investigation to reveal the
+        evidence in sequence.
       </p>
 
       <div className="mt-5 h-px w-10 bg-white/10" aria-hidden />
@@ -360,8 +547,8 @@ function EmptyStateOverlay() {
           jetbrainsMono.className
         )}
       >
-        <p>LAT 18.5421° N</p>
-        <p>LON 72.8234° E</p>
+        <p>ARABIAN SEA</p>
+        <p>13.5000° N  68.5000° E</p>
       </div>
     </div>
   );
@@ -407,7 +594,7 @@ function MapControlRail({
         />
       </ControlButton>
       <ControlButton
-        label="Recenter on investigation origin"
+        label="Reframe on the current phase"
         onClick={onRecenter}
         disabled={disabled}
         className="border-t border-white/[0.08]"

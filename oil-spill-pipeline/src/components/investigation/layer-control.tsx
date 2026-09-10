@@ -4,9 +4,9 @@ import {
   Building2,
   Circle,
   CircleCheck,
-  CloudSun,
-  RadioTower,
   Satellite,
+  ScanLine,
+  TrendingUp,
   Waves,
   type LucideIcon,
 } from "lucide-react";
@@ -14,11 +14,11 @@ import { cn } from "@/lib/utils";
 import type { MapLayerId, MapLayerToggle } from "@/types/investigation";
 
 const LAYER_ICONS: Record<MapLayerId, LucideIcon> = {
-  satellite: Satellite,
-  oceanographic: Waves,
-  ais: RadioTower,
+  basemap: Satellite,
+  detection: ScanLine,
   infrastructure: Building2,
-  weather: CloudSun,
+  drift: Waves,
+  forecast: TrendingUp,
 };
 
 interface LayerControlProps {
@@ -27,8 +27,9 @@ interface LayerControlProps {
 }
 
 /**
- * Floating map layer toggle (oil-spill-pipeline/CLAUDE.md §13). Layers track
- * state only — no real data sources are wired up in Phase 2.
+ * Floating map layer toggle. Every entry controls geometry actually drawn
+ * from the backend response (or, for `basemap`, the Mapbox style) — there are
+ * no decorative toggles that switch nothing.
  */
 export function LayerControl({ layers, onToggle }: LayerControlProps) {
   return (

@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PL-04",
+        "name": "Pipeline PL-04"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [68.0500, 14.4000],
+          [68.0500, 14.8000]
+        ]
+      }
+    }
+  ]
+}

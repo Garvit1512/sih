@@ -255,12 +255,18 @@ export interface SarUploadState {
   readonly rejectionReason: string | null;
 }
 
+/**
+ * Only layers that draw something real. There is no AIS layer: the frozen
+ * `AttributionResult` carries no vessel positions, so there is nothing to
+ * place on the map — the candidates are presented as a ranked lineup instead
+ * (PRD §70/§71).
+ */
 export type MapLayerId =
-  | "satellite"
-  | "oceanographic"
-  | "ais"
+  | "basemap"
+  | "detection"
   | "infrastructure"
-  | "weather";
+  | "drift"
+  | "forecast";
 
 export interface MapLayerToggle {
   readonly id: MapLayerId;

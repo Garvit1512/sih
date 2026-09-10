@@ -97,6 +97,41 @@ sent to the browser by design, which is how the map renders at all.
 | `npm run lint` | ESLint |
 | `npx tsc --noEmit` | Type check only |
 
+## How `/investigate` presents a result
+
+`POST /api/investigation/run` returns the whole `InvestigationCase` in one
+call. The workspace does not dump it: it reveals it as a five-phase sequence,
+one phase at a time, with the map framed on the evidence being discussed.
+
+| Phase | Map | Sidebar |
+| --- | --- | --- |
+| 01 DETECTION | Stage A spill polygon + centroid | footprint metrics, indicative confidence |
+| 02 RULE-OUT | nearby platform / pipeline highlighted; distant infrastructure shown as a bearing readout | hypothesis, distances, triage narrative, routing decision |
+| 03 TIME TRAVEL | hindcast traced back from the slick to the origin marker | origin, time window, drift timings |
+| 04 LINEUP | origin emphasised | ranked candidates, or the backend's own not-applicable reason |
+| 05 VERDICT | everything, including the forward forecast | synthesis, limitations, provenance, disclosures |
+
+The sequence advances on its own and stops the moment you take control. Any
+phase already reached is a button — in the strip at the top-left of the map and
+in the sidebar stage list — so you can step back through the evidence without
+re-running the case. Pause, skip to the dossier, and replay sit at the right of
+the strip.
+
+Two things are deliberately *not* drawn:
+
+- **Vessel positions.** `AttributionResult` carries no coordinates, so the
+  lineup is ranked rather than plotted. Inventing positions would be
+  fabrication (parent CLAUDE.md §71).
+- **Distant infrastructure.** When the backend reports the nearest platform as
+  hundreds of km away, framing it would lose the slick; the distance and
+  bearing are shown as an instrument reading instead.
+
+Layer geometry for pipelines is served from
+`public/data/infrastructure/` (a copy of the repository's hand-verified
+dataset) because `InfrastructureEvidence.location` is null for pipelines. It is
+display geometry only — every distance and `nearby` flag still comes from the
+backend. See the README beside those files.
+
 ## Notes
 
 - `/` uses its own sample visualisation content and needs no backend. It is an
