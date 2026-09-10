@@ -33,6 +33,10 @@ KNOWN_LIMITATIONS: list[str] = [
     "AIS dark gaps can reduce attribution effectiveness in the real world.",
     "Drift validation may be based on a limited number of historical cases (n=1).",
     "System output is an investigative lead, not a legal conclusion.",
+    "Stage A detection metrics reported to date come from a substitute open SAR "
+    "corpus (SOS, Sentinel-1 subset), not the project's target 5-class corpus; "
+    "look-alike discrimination is implemented and unit-tested but not yet "
+    "validated on real multi-class data.",
 ]
 
 

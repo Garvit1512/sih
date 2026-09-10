@@ -10,21 +10,42 @@ confidence), **Stage 9** (geometric properties) and **Stage 10** (evaluation har
 | Piece | State |
 |---|---|
 | Preprocessing, dataset loading, palette decoding (Stage 3) | Code complete, tested |
-| Model + loss + checkpointing (Stage 6) | Code complete, **not yet trained** |
+| Model + loss + checkpointing (Stage 6) | Code complete, **trained — on a substitute corpus, see below** |
 | Vectorization, WGS84 output (Stage 7) | Code complete, tested |
-| Look-alike confidence (Stage 8) | Code complete, tested |
+| Look-alike confidence (Stage 8) | Code complete, tested — **no real-data validation yet** |
 | Geometric properties (Stage 9) | Code complete, tested |
-| Evaluation harness (Stage 10) | Code complete, tested — **no metrics produced yet** |
+| Evaluation harness (Stage 10) | Code complete, tested — **real metrics exist, on a substitute corpus** |
 | Backend integration (`STAGE_A_MODE=real`) | Wired and tested |
-| Trained weights | **Do not exist.** No training run has happened. |
-| IoU / Dice numbers | **Do not exist.** Anything quoted before a training run is fabricated. |
+| Trained weights | Exist (`stage_a/checkpoints/best.pt`, gitignored) — trained on SOS, **not Krestenitis** |
+| IoU / Dice numbers | Real, measured on SOS's held-out split (`stage_a/artifacts/detection_metrics.json`) — **not Krestenitis** |
 
 The pipeline is verified end-to-end against synthesized model output — 42 tests covering
 axis order, metric geometry, confidence discrimination, metric arithmetic, and conformance
-to the frozen `DetectionResult` schema. What has *not* happened is a real training run,
-because that needs a GPU. Until `python -m stage_a.cli train` has actually been run on the
-public corpus, Stage A has no accuracy figure, and per CLAUDE.md §60 the correct thing to
-say about it is **"not yet evaluated"** — not an estimate.
+to the frozen `DetectionResult` schema.
+
+**Krestenitis access is still pending.** The public 5-class corpus this package's
+`config.py` is built for (`sea_surface`/`oil_spill`/`look_alike`/`ship`/`land`) is not on
+Kaggle or Zenodo as originally assumed — it is distributed on request by the authors
+(MKLab/CERTH, via m4d.iti.gr), requiring an institutional email and, for students, a
+supervisor to submit it. That request is in flight.
+
+**What exists instead:** a real training/evaluation run on the Sentinel-1 subset of the
+openly-licensed Deep-SAR "SOS" corpus (3,354 train / 839 test images), as a disclosed
+substitute — not a Krestenitis result:
+
+```
+sea_surface   IoU 0.8426  Dice 0.9145  (65.28% of pixels)
+oil_spill     IoU 0.7542  Dice 0.8598  (34.72% of pixels)
+look_alike / ship / land   undefined — absent from this corpus, not measured
+```
+
+SOS is binary (oil vs. background) with no `look_alike`/`ship`/`land` classes, so this
+run is real evidence that Stages 6/9/10 train and evaluate correctly end-to-end on
+genuine SAR imagery — it is **not** evidence for the look-alike-discrimination mechanism
+Stage 8 depends on, and the numbers above describe an easier, differently-balanced task
+than Krestenitis. `config.py`'s `DEFAULT_LABEL_PALETTE`/`NUM_CLASSES` were left untouched
+and apply as-is once real access arrives. Per CLAUDE.md §60, anywhere these numbers are
+quoted should say "SOS substitute" beside them, not present them as Stage A's accuracy.
 
 ## Where to train
 
