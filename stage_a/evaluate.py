@@ -110,7 +110,9 @@ class ConfusionAccumulator:
         self.matrix += np.bincount(indices, minlength=self.num_classes**2).reshape(
             self.num_classes, self.num_classes
         )
-        self.num_images += 1
+        # `evaluate_model`/`train._validate` pass whole (N, H, W) batches, not one (H, W)
+        # image per call — count the images actually in this call, not the calls themselves.
+        self.num_images += predictions.shape[0] if predictions.ndim == 3 else 1
 
     def compute(self) -> EvaluationReport:
         true_positive = np.diag(self.matrix).astype(np.float64)
