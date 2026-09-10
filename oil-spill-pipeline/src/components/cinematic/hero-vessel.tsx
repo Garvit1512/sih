@@ -6,11 +6,11 @@ import * as THREE from "three";
 import { WAVE_GLSL, getOceanHeight } from "@/components/cinematic/ocean";
 
 /** Where the hero vessel sits, and how big it reads from the opening frame. */
-export const HERO_VESSEL_ORIGIN: readonly [number, number] = [27, -56];
-export const HERO_VESSEL_HEADING = -1.05;
+export const HERO_VESSEL_ORIGIN: readonly [number, number] = [20, -46];
+export const HERO_VESSEL_HEADING = -1.22;
 
-const HULL_LENGTH = 32;
-const HULL_WIDTH = 5.6;
+const HULL_LENGTH = 38;
+const HULL_WIDTH = 6.4;
 
 /**
  * A laden products tanker, built from primitives: hull with a wedge bow,
@@ -30,7 +30,7 @@ function VesselGeometry() {
   });
 
   const hullMaterial = (
-    <meshStandardMaterial color="#5b6875" metalness={0.25} roughness={0.78} />
+    <meshStandardMaterial color="#4d5a68" metalness={0.45} roughness={0.55} />
   );
 
   return (
@@ -59,7 +59,7 @@ function VesselGeometry() {
       {/* Main deck */}
       <mesh position={[0, 1.6, 0]}>
         <boxGeometry args={[HULL_WIDTH - 0.5, 0.22, HULL_LENGTH - 1.2]} />
-        <meshStandardMaterial color="#6c7986" metalness={0.25} roughness={0.72} />
+        <meshStandardMaterial color="#68757f" metalness={0.4} roughness={0.5} />
       </mesh>
 
       {/* Cargo tank domes */}
@@ -93,8 +93,15 @@ function VesselGeometry() {
         {/* Bridge window band */}
         <mesh position={[0, 4.6, 1.52]}>
           <boxGeometry args={[3.0, 0.55, 0.08]} />
-          <meshBasicMaterial color="#d9e6ef" />
+          <meshBasicMaterial color="#dce8f2" />
         </mesh>
+        {/* Accommodation decks below the bridge, lit from within */}
+        {[2.2, 2.85].map((y) => (
+          <mesh key={`acc-${y}`} position={[0, y, 1.72]}>
+            <boxGeometry args={[3.2, 0.22, 0.06]} />
+            <meshBasicMaterial color="#e8c98a" transparent opacity={0.75} />
+          </mesh>
+        ))}
         {/* Funnel */}
         <mesh position={[0, 5.9, -0.9]}>
           <cylinderGeometry args={[0.55, 0.65, 1.6, 10]} />
@@ -127,10 +134,19 @@ function VesselGeometry() {
         <meshBasicMaterial color="#4fbe87" />
       </mesh>
 
-      {/* A little working deck light, warm against all the cold blue */}
-      <mesh position={[0, 2.4, -8]}>
-        <sphereGeometry args={[0.1, 8, 8]} />
-        <meshBasicMaterial color="#f0d9a8" />
+      {/* Deck lighting. Warm sodium against all the cold blue, and the thing
+          that makes the hull read as one continuous vessel at this distance. */}
+      {[-13, -9.5, -6, -2.5, 1, 4.5, 8, 11.5, 15].map((z) => (
+        <mesh key={`deck-${z}`} position={[0, 2.5, z]}>
+          <sphereGeometry args={[0.085, 6, 6]} />
+          <meshBasicMaterial color="#f2ddb0" />
+        </mesh>
+      ))}
+
+      {/* Faint spill of that light onto the deck itself */}
+      <mesh position={[0, 1.85, 0]} rotation-x={-Math.PI / 2}>
+        <planeGeometry args={[HULL_WIDTH - 1.2, HULL_LENGTH - 6]} />
+        <meshBasicMaterial color="#6b5f47" transparent opacity={0.28} />
       </mesh>
     </group>
   );
@@ -244,7 +260,7 @@ export function HeroVessel() {
     // A ship this size rides the swell rather than tracking every ripple,
     // so it takes a damped fraction of the local wave height.
     const height = getOceanHeight(x, z, time);
-    group.position.set(x, height * 0.45 - 0.25, z);
+    group.position.set(x, height * 0.45 + 0.55, z);
 
     // Pitch and roll sampled from the surface a little fore and aft.
     const fore = getOceanHeight(x, z + 9, time);

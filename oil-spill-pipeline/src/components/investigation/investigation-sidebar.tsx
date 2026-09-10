@@ -1,37 +1,66 @@
 "use client";
 
 import { motion } from "motion/react";
-import { CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StageList } from "@/components/investigation/stage-list";
 import { SarUpload } from "@/components/investigation/sar-upload";
-import type { InvestigationStage, SarUploadState } from "@/types/investigation";
+import { CaseSelector } from "@/components/investigation/case-selector";
+import { InvestigationResults } from "@/components/investigation/investigation-results";
+import type {
+  CaseMeta,
+  InvestigationCase,
+  InvestigationStage,
+  SarUploadState,
+} from "@/types/investigation";
 
 interface InvestigationSidebarProps {
   caseName: string;
   onCaseNameChange: (value: string) => void;
+
+  cases: CaseMeta[];
+  casesLoading: boolean;
+  casesError: string | null;
+  selectedCaseId: string | null;
+  onSelectCase: (caseId: string) => void;
+  onReloadCases: () => void;
+
+  investigation: InvestigationCase | null;
+  isRunning: boolean;
+  runError: string | null;
+  onStartInvestigation: () => void;
+  canStartInvestigation: boolean;
+
   sarUpload: SarUploadState;
   onSelectSarFile: (file: File) => void;
   onRejectSarFile: (reason: string) => void;
   onClearSarFile: () => void;
+
   stages: InvestigationStage[];
-  canStartInvestigation: boolean;
-  investigationStarted: boolean;
-  onStartInvestigation: () => void;
 }
 
 export function InvestigationSidebar({
   caseName,
   onCaseNameChange,
+  cases,
+  casesLoading,
+  casesError,
+  selectedCaseId,
+  onSelectCase,
+  onReloadCases,
+  investigation,
+  isRunning,
+  runError,
+  onStartInvestigation,
+  canStartInvestigation,
   sarUpload,
   onSelectSarFile,
   onRejectSarFile,
   onClearSarFile,
   stages,
-  canStartInvestigation,
-  investigationStarted,
-  onStartInvestigation,
 }: InvestigationSidebarProps) {
+  const hasResult = investigation !== null && investigation.status !== "failed";
+
   return (
     <motion.aside
       initial={{ opacity: 0, x: 16 }}
@@ -65,6 +94,18 @@ export function InvestigationSidebar({
         />
       </div>
 
+      <div className="border-t border-white/[0.06] py-5">
+        <CaseSelector
+          cases={cases}
+          loading={casesLoading}
+          error={casesError}
+          selectedCaseId={selectedCaseId}
+          onSelect={onSelectCase}
+          onRetry={onReloadCases}
+          disabled={isRunning}
+        />
+      </div>
+
       <div className="space-y-2 border-t border-white/[0.06] py-5">
         <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-white/40">
           Investigation Stages
@@ -81,33 +122,55 @@ export function InvestigationSidebar({
         />
       </div>
 
-      <p className="pb-4 text-[10.5px] leading-relaxed text-white/35">
-        AI analysis will identify potential slick regions and calculate
-        look-alike confidence.
-      </p>
+      {runError && (
+        <div
+          role="alert"
+          className="mb-4 flex items-start gap-2 rounded-md border border-[#E2685C]/30 bg-[#E2685C]/[0.07] px-3 py-2.5 text-[11px] leading-relaxed text-[#E2685C]"
+        >
+          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+          <span>{runError}</span>
+        </div>
+      )}
 
       <button
         type="button"
-        disabled={!canStartInvestigation || investigationStarted}
+        disabled={!canStartInvestigation}
         onClick={onStartInvestigation}
         className={cn(
-          "mt-auto flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#4FB8D9]",
-          investigationStarted
-            ? "cursor-default border border-[#4FB8D9]/30 bg-[#4FB8D9]/10 text-[#4FB8D9]"
+          "flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#4FB8D9]",
+          isRunning
+            ? "cursor-wait border border-[#4FB8D9]/30 bg-[#4FB8D9]/10 text-[#4FB8D9]"
             : canStartInvestigation
               ? "bg-[#4FB8D9] text-[#05070a] hover:bg-[#6BC9DD]"
               : "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
         )}
       >
-        {investigationStarted ? (
+        {isRunning ? (
           <>
-            <CheckCircle2 className="size-3.5" aria-hidden />
-            Investigation Started
+            <Loader2 className="size-3.5 animate-spin" aria-hidden />
+            Running investigation…
+          </>
+        ) : hasResult ? (
+          <>
+            <Play className="size-3.5" aria-hidden />
+            Re-run investigation
           </>
         ) : (
           "Start Investigation"
         )}
       </button>
+
+      {hasResult && investigation && (
+        <div className="mt-5 border-t border-white/[0.06] pt-5">
+          <div className="mb-4 flex items-center gap-2 text-[11px] text-[#4FB8D9]">
+            <CheckCircle2 className="size-3.5" aria-hidden />
+            <span>
+              {investigation.case_meta.case_id} · {investigation.status}
+            </span>
+          </div>
+          <InvestigationResults investigation={investigation} />
+        </div>
+      )}
     </motion.aside>
   );
 }

@@ -1,13 +1,24 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import Map, { ScaleControl, type ViewStateChangeEvent } from "react-map-gl/mapbox";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Map, {
+  Layer,
+  ScaleControl,
+  Source,
+  type MapRef,
+  type ViewStateChangeEvent,
+} from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Compass, LocateFixed, Minus, Plus, Satellite } from "lucide-react";
+import { Compass, FileWarning, LocateFixed, Minus, Plus, Satellite } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { jetbrainsMono } from "@/lib/fonts";
 import { LayerControl } from "@/components/investigation/layer-control";
-import type { MapLayerId, MapLayerToggle } from "@/types/investigation";
+import type {
+  DetectionResult,
+  MapLayerId,
+  MapLayerToggle,
+} from "@/types/investigation";
+import { isGeoTiff, useObjectUrl } from "@/hooks/use-object-url";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -35,18 +46,71 @@ const INITIAL_VIEW_STATE: ViewState = {
 };
 
 interface InvestigationMapProps {
+  /** The ingested scene — a local reference image, never analysed. */
+  sarFile?: File | null;
+  /** Real Stage A result from the backend; drives the rendered geometry. */
+  detection?: DetectionResult | null;
   investigationStarted: boolean;
   layers: MapLayerToggle[];
   onToggleLayer: (id: MapLayerId) => void;
 }
 
 export function InvestigationMap({
+  sarFile = null,
+  detection = null,
   investigationStarted,
   layers,
   onToggleLayer,
 }: InvestigationMapProps) {
+  const mapRef = useRef<MapRef | null>(null);
+  const sceneUrl = useObjectUrl(sarFile);
+  const sceneIsGeoTiff = isGeoTiff(sarFile);
+  const showScene = investigationStarted && sarFile !== null;
   const [viewState, setViewState] = useState<ViewState>(INITIAL_VIEW_STATE);
   const hasToken = Boolean(MAPBOX_TOKEN);
+
+  /**
+   * The backend's spill polygon, as a GeoJSON Feature for Mapbox. Coordinates
+   * are passed through untouched — they are already [lon, lat] per the
+   * GeoJSON spec, which is exactly what Mapbox expects.
+   */
+  const spillFeature = useMemo(() => {
+    if (!detection) return null;
+    return {
+      type: "Feature" as const,
+      properties: {},
+      geometry: detection.spill.polygon,
+    };
+  }, [detection]);
+
+  // Frame the real geometry when a result arrives, rather than leaving the
+  // camera on the default view.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !detection) return;
+
+    const ring = detection.spill.polygon.coordinates[0];
+    if (!ring || ring.length === 0) return;
+
+    let minLon = ring[0][0];
+    let maxLon = ring[0][0];
+    let minLat = ring[0][1];
+    let maxLat = ring[0][1];
+    for (const [lon, lat] of ring) {
+      minLon = Math.min(minLon, lon);
+      maxLon = Math.max(maxLon, lon);
+      minLat = Math.min(minLat, lat);
+      maxLat = Math.max(maxLat, lat);
+    }
+
+    map.fitBounds(
+      [
+        [minLon, minLat],
+        [maxLon, maxLat],
+      ],
+      { padding: 140, duration: 1200, maxZoom: 12 }
+    );
+  }, [detection]);
 
   const zoomBy = useCallback((delta: number) => {
     setViewState((current) => ({
@@ -77,6 +141,7 @@ export function InvestigationMap({
     >
       {hasToken ? (
         <Map
+          ref={mapRef}
           {...viewState}
           onMove={(event: ViewStateChangeEvent) => setViewState(event.viewState)}
           mapboxAccessToken={MAPBOX_TOKEN}
@@ -86,6 +151,26 @@ export function InvestigationMap({
           maxZoom={MAX_ZOOM}
         >
           <ScaleControl position="bottom-right" unit="metric" />
+
+          {/* Real Stage A geometry from the backend — never a sample shape. */}
+          {spillFeature && (
+            <Source id="spill-source" type="geojson" data={spillFeature}>
+              <Layer
+                id="spill-fill"
+                type="fill"
+                paint={{ "fill-color": "#4FB8D9", "fill-opacity": 0.18 }}
+              />
+              <Layer
+                id="spill-outline"
+                type="line"
+                paint={{
+                  "line-color": "#7FD3E6",
+                  "line-width": 1.6,
+                  "line-opacity": 0.9,
+                }}
+              />
+            </Source>
+          )}
         </Map>
       ) : (
         <FallbackOceanBackdrop />
@@ -101,6 +186,14 @@ export function InvestigationMap({
             "radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 45%, rgba(2,4,7,0.5) 100%)",
         }}
       />
+
+      {showScene && (
+        <SceneOverlay
+          url={sceneUrl}
+          name={sarFile.name}
+          geoTiff={sceneIsGeoTiff}
+        />
+      )}
 
       {!investigationStarted && <EmptyStateOverlay />}
       {!hasToken && <DevModeBadge />}
@@ -179,9 +272,68 @@ function FallbackOceanBackdrop() {
  */
 function DevModeBadge() {
   return (
-    <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-1.5 rounded-sm border border-[#D8A34E]/25 bg-[#0b0f16]/75 px-2 py-1 text-[9px] uppercase tracking-[0.08em] text-[#D8A34E]/85">
+    <div
+      className="pointer-events-none absolute left-4 top-4 flex items-center gap-1.5 rounded-sm border border-white/10 bg-[#0b0f16]/75 px-2 py-1 text-[9px] uppercase tracking-[0.08em] text-white/45"
+      title="Set NEXT_PUBLIC_MAPBOX_TOKEN in .env.local to enable the basemap"
+    >
       <Satellite className="size-3" aria-hidden />
-      Map Offline — Development Mode
+      Basemap not configured
+    </div>
+  );
+}
+
+/**
+ * The ingested SAR scene. Presented as an uploaded image, NOT as a
+ * georeferenced layer — nothing here has been geolocated or analysed, and
+ * the labelling has to keep that honest.
+ */
+function SceneOverlay({
+  url,
+  name,
+  geoTiff,
+}: {
+  url: string | null;
+  name: string;
+  geoTiff: boolean;
+}) {
+  return (
+    <div className="absolute inset-0 flex flex-col">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center p-8">
+        {url ? (
+          // Local object URL for a user-selected file; next/image cannot
+          // optimise a blob.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt={`Ingested SAR scene: ${name}`}
+            className="max-h-full max-w-full object-contain opacity-90"
+          />
+        ) : (
+          <div className="max-w-sm text-center">
+            <FileWarning className="mx-auto size-6 text-[#D8A34E]/70" aria-hidden />
+            <p className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-white/70">
+              Scene ingested — no preview
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-white/40">
+              {geoTiff
+                ? "GeoTIFF has no browser decoder, so the scene can't be displayed here. It will be rendered once Stage A processing returns a raster."
+                : "This file type can't be displayed in the browser."}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div
+        className={cn(
+          "flex items-center justify-between gap-3 border-t border-white/10 bg-[#0b0f16]/80 px-4 py-2 text-[10px] text-white/45",
+          jetbrainsMono.className
+        )}
+      >
+        <span className="truncate">{name}</span>
+        <span className="shrink-0 text-white/30">
+          Uploaded scene · not georeferenced
+        </span>
+      </div>
     </div>
   );
 }
