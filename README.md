@@ -30,26 +30,44 @@ Investigator's Dossier (**Stage E**) → guided frontend.
   (`backend/app/api/`: cases, investigation, detection, drift, triage, attribution, report)
 - A test suite that enforces the project's non-negotiable rules in code, not just docs
   (contract validation, triage routing, and the report's language/disclosure rules)
+- **Stage A, C, D real engines all exist now** (`backend/app/integrations/real/`), each
+  genuine algorithmic work, each honestly short of real-world validation in a specific,
+  disclosed way — see below rather than assume any of them is fully validated:
+  - **Stage A** (`stage_a/`) — a real SAR segmentation model (U-Net-style, trained,
+    checkpointed), trained and evaluated end-to-end on real SAR imagery. The corpus used
+    is a disclosed **substitute** (open Sentinel-1 "SOS" data), not yet the project's
+    target 5-class Krestenitis corpus, which is access-gated and pending — see
+    `stage_a/README.md` for the real numbers and exactly what they do and don't show.
+  - **Stage C** (`real_drift.py`, `drift_physics.py`) — a genuine Lagrangian
+    particle-advection engine, run on an idealized, seeded **synthetic** current field,
+    not real NOAA/HYCOM/Copernicus data.
+  - **Stage D** (`real_attribution.py`, `attribution_scoring.py`) — a genuine
+    proximity + trajectory-alignment scorer, run over a deterministically generated
+    **synthetic** AIS scenario, per this project's own synthetic-AIS design (CLAUDE.md
+    §21), not a live AIS feed.
 
-**Currently mocked** (real logic owned by other team members, not us):
-- **Stage A** (SAR detection), **Stage C** (drift modelling), **Stage D** (AIS vessel
-  attribution) all run through `Protocol`-typed provider adapters
-  (`backend/app/integrations/base.py`) with deterministic mock implementations
-  (`backend/app/integrations/mock/`). Switching a stage from mock to real is a one-line
-  config change (`STAGE_A_MODE` / `STAGE_C_MODE` / `STAGE_D_MODE` in `.env`) — the
-  orchestrator and frontend never need to know which mode is active.
+**Mocks still exist, by design, alongside the real engines above:**
+- All three (Stage A/C/D) run through `Protocol`-typed provider adapters
+  (`backend/app/integrations/base.py`), and deterministic mock implementations
+  (`backend/app/integrations/mock/`) remain the default. Switching a stage between mock
+  and real is a one-line config change (`STAGE_A_MODE` / `STAGE_C_MODE` / `STAGE_D_MODE`
+  in `.env`) — the orchestrator and frontend never need to know which mode is active.
+  Mocks stay useful even with real engines available: they're the fast, always-identical
+  path for demo rehearsal and frontend development against a stable contract.
 
 **Future / aspirational** (not implemented — do not assume otherwise):
 - The **entire frontend**. `frontend/` does not exist in this repository yet. Everything
   described about the React/Mapbox investigation UI in this README, `prd.md`, and
   `CLAUDE.md` is a plan, not working code.
-- Real Stage A/C/D model implementations (SAR segmentation, OpenDrift/OpenOil physics,
-  AIS scoring) — these belong to teammates and are out of scope for this repository's
-  current code.
+- Real-world validation for all three engines above: Krestenitis-corpus numbers for
+  Stage A, real oceanographic forcing data for Stage C, a live/historical AIS feed for
+  Stage D. What exists today is genuine algorithmic work on disclosed substitute or
+  synthetic inputs, not a claim that any of the three is production-validated.
 - PDF export (`reportlab` is a declared-but-unused optional dependency).
 - The 50-stage build roadmap in `docs/staged-build-reference.md` — most of it describes
   future work; only a handful of its stages (contract freeze, triage, orchestration,
-  dossier assembly, REST API surface) have real code behind them today.
+  dossier assembly, REST API surface, and now the Stage A/C/D real engines) have real
+  code behind them today.
 
 ---
 
