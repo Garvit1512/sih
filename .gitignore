@@ -10,6 +10,20 @@ __pycache__/
 frontend/node_modules/
 frontend/dist/
 
+# --- Stage A (SAR detection) --------------------------------------------
+# Datasets, trained weights and inference outputs are large and regenerable;
+# the code that produces them is what belongs in git. Reproduce with:
+#   python -m stage_a.cli train --data-root <corpus>
+# The one Stage A output that IS committed is the per-case detection artifact
+# under data/cases/<id>/detection.real.json — it is small, and the demo reads
+# it instead of running live inference (staged-build-reference.md Stage 39).
+stage_a/data/
+stage_a/checkpoints/
+stage_a/artifacts/
+stage_a/.venv/
+*.pt
+*.pth
+
 # Env
 .env
 backend/.env

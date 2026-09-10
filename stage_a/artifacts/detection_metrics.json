@@ -1,0 +1,51 @@
+{
+  "per_class": [
+    {
+      "name": "sea_surface",
+      "iou": 0.8425529784787577,
+      "dice": 0.9145495280948539,
+      "support_pixels": 35893492,
+      "predicted_pixels": 32423521
+    },
+    {
+      "name": "oil_spill",
+      "iou": 0.7541500635627001,
+      "dice": 0.8598466906884946,
+      "support_pixels": 19091212,
+      "predicted_pixels": 22561183
+    },
+    {
+      "name": "look_alike",
+      "iou": null,
+      "dice": null,
+      "support_pixels": 0,
+      "predicted_pixels": 0
+    },
+    {
+      "name": "ship",
+      "iou": null,
+      "dice": null,
+      "support_pixels": 0,
+      "predicted_pixels": 0
+    },
+    {
+      "name": "land",
+      "iou": null,
+      "dice": null,
+      "support_pixels": 0,
+      "predicted_pixels": 0
+    }
+  ],
+  "mean_iou": 0.7983515210207288,
+  "mean_dice": 0.8871981093916743,
+  "classes_in_mean": 2,
+  "class_distribution": {
+    "sea_surface": 0.6527904924249478,
+    "oil_spill": 0.34720950757505215,
+    "look_alike": 0.0,
+    "ship": 0.0,
+    "land": 0.0
+  },
+  "total_pixels": 54984704,
+  "num_images": 839
+}

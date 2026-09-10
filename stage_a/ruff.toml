@@ -1,0 +1,15 @@
+# Mirrors backend/pyproject.toml's ruff settings so Stage A is held to the same standard
+# as the rest of the repo (CLAUDE.md §47).
+#
+# Notebooks are excluded: a Colab notebook legitimately imports inside cells after shell
+# setup steps, which is E402 by definition and not a defect there.
+
+line-length = 100
+target-version = "py311"
+extend-exclude = ["notebooks"]
+
+[lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[lint.isort]
+known-first-party = ["stage_a", "app"]
