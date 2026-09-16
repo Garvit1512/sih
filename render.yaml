@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: oil-spill-backend
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -e .
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.5
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: API_TIMEOUT_SECONDS
+        value: "30"
+      # Set this to your deployed Vercel frontend URL (e.g. https://your-app.vercel.app)
+      # after that project is created — the backend blocks every browser request
+      # from an origin that doesn't match this exactly.
+      - key: CORS_ALLOWED_ORIGIN
+        sync: false
+      - key: TRIAGE_PLATFORM_RADIUS_KM
+        value: "5.0"
+      - key: TRIAGE_PIPELINE_RADIUS_KM
+        value: "2.0"
+      - key: STAGE_A_MODE
+        value: mock
+      - key: STAGE_C_MODE
+        value: mock
+      - key: STAGE_D_MODE
+        value: mock
