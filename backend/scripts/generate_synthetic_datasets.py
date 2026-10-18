@@ -4,7 +4,7 @@ engines: `data/synthetic_forcing/<case_id>/current_field.json` and
 
 See docs/stage-c-d-integration-plan.md §6/§7. Run this once whenever a case is added or
 the underlying generation logic changes; the providers (`RealDriftProvider`,
-`RealAttributionProvider`) only ever read these files, they never generate inline. Safe
+`RealAttributionProvider`) only ever read these files, they never gednerate inline. Safe
 to re-run: fully deterministic, overwrites with identical content given identical code.
 
 Usage (from `backend/`, with the project's venv active):
